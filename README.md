@@ -52,11 +52,11 @@ Create a new folder anywhere on your computer, and create 2 subfolder there, "ti
 
 ![screenshot_folder](https://github.com/user-attachments/assets/4eac2f13-beda-41bb-9348-938788aefb2b)
 
-Now, download the "retrowave_boxart.jsx" Javascript file and "RetroWave-game-boxarts_edit.psd" from this repository and put them in the same folder.
+Now, download the "retrowave_boxart.jsx" Javascript file and "RetroWave-game-boxarts_edit.psd" Photoshop file from this repository and put them in the same folder.
 
 ![input_files](https://github.com/user-attachments/assets/c8680da7-45f0-4afb-afe8-e57d18a6b7a6)
 
-Open the Photoshop file, then go to "File" > "Scripts" > "Browse..." and select "retrowave_boxart.jsx". 
+Open RetroWave-game-boxarts_edit.psd, then go to "File" > "Scripts" > "Browse..." and select "retrowave_boxart.jsx". 
 
 ![browse_script](https://github.com/user-attachments/assets/8ad3740c-dd05-4169-af65-98fd87ff93a1)
 
