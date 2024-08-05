@@ -44,6 +44,7 @@ And for the screenshots, you will want to scrape the Media Type "Image" and then
 
 Make sure you select different output folders for the titles and screenshots otherwise they might overwrite each other.
 
+
 ### 2) Put all the files in the right folders
 
 Create a new folder anywhere on your computer, and create 2 subfolder there, "title" and "screenshot". All your scraped titles should go in the title folder, and likewise for the screenshot folder.
@@ -56,6 +57,9 @@ Now, download the "retrowave_boxart.jsx" Javascript file and "RetroWave-game-box
 
 ![input_files](https://github.com/user-attachments/assets/c8680da7-45f0-4afb-afe8-e57d18a6b7a6)
 
+
+### 3) Open Photoshop file and run the script
+
 Open RetroWave-game-boxarts_edit.psd, then go to "File" > "Scripts" > "Browse..." and select "retrowave_boxart.jsx". 
 
 ![browse_script](https://github.com/user-attachments/assets/8ad3740c-dd05-4169-af65-98fd87ff93a1)
@@ -66,7 +70,8 @@ This will run the script, which will create a new subfolder "outputs" and save t
 
 If you have a lot of games, it's probably going to take a while. Go make a cup of tea and maybe take some time to play games on your Anbernic instead of messing with themes and boxarts all day ;)
 
-### 3) Put the files in the correct folder(s) on MuOS
+
+### 4) Put the files in the correct folder(s) on MuOS
 
 The boxart files should go in the correct folders for their respective system. If you need some help on this, check https://muos.dev/help/artwork or ask for help on the official Discord
 
