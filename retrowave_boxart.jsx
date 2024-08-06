@@ -19,7 +19,7 @@ if (app.documents.length > 0) {
 
     // PNG save options
     var pngOptions = new PNGSaveOptions()
-    pngOptions.compression = 0
+    pngOptions.compression = 6
     pngOptions.interlaced = false
 
     // Check if all layers are found
