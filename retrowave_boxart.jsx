@@ -88,7 +88,7 @@ if (app.documents.length > 0) {
                     // alert(files_title[i].name);
                     // alert(arr_unique[i]);
                     var searchString = arr_unique[i];
-                    searchString = searchString.replace(/([<>*()?])/g, "\\$1");
+                    searchString = searchString.replace(/([<>*()?+])/g, "\\$1");
                     // alert(searchString);
                     var searchRegExp = new RegExp(searchString);
 
