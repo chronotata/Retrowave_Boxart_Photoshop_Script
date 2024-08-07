@@ -89,6 +89,8 @@ if (app.documents.length > 0) {
                     // alert(arr_unique[i]);
                     var searchString = arr_unique[i];
                     searchString = searchString.replace(/([<>*()?+])/g, "\\$1");
+                    // searchString = searchString.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
+                    // searchString = '^'+searchString+'$';
                     // alert(searchString);
                     var searchRegExp = new RegExp(searchString);
 
@@ -133,7 +135,9 @@ if (app.documents.length > 0) {
 
                         // Replace the reference screenshot with the game's
                         // screenshot and resize accordingly
-                        replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", folder_ss.getFiles(searchRegExp)[0], "exceed");
+                        // replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", folder_ss.getFiles(searchRegExp)[0], "exceed");
+                        replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", File(thePath + "/screenshot/" + arr_unique[i]), "exceed");
+
 
                         // Delete the raw screenshot layer
                         myDocument.layers["raw_screenshot"].remove();
@@ -151,7 +155,8 @@ if (app.documents.length > 0) {
 
                         // Replace the reference title with the game's
                         // title and resize accordingly
-                        replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", folder_title.getFiles(searchRegExp)[0], "constrain");
+                        // replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", folder_title.getFiles(searchRegExp)[0], "constrain");
+                        replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", File(thePath + "/title/" + arr_unique[i]), "constrain");
 
                         // Delete the raw title layer
                         myDocument.layers["raw_title"].remove();
@@ -187,6 +192,7 @@ function getFiles(theFile) {
         return true;
     }
 }
+
 
 // Find a layer by name
 function findLayerByName(layerName) {
