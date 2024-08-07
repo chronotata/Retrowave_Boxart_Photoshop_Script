@@ -16,7 +16,7 @@ While the RetroWave theme comes with a Photoshop template for the user to create
 
 This was tested with Photoshop CC 2015 on Windows 10. If you have any issues running it on your system please let me know.
 
-Other users have created Skraper and Boxart Buddy templates for this theme. If you don't have Photoshop and/or think this method would work better for you, you can find those templates on the RetroWave thread in the MuOS Discord, linked above. There are also pre-scrapped boxarts using these templates available to download in the thread
+Other users have created Skraper and Boxart Buddy templates for this theme. If you don't have Photoshop and/or think the scraper method would work better for you, you can find those templates on the RetroWave thread in the MuOS Discord, linked above. There are also pre-scraped boxarts using these templates available to download in the thread.
 
 The advantages of using a Photoshop script as opposed to XML templates for scraping tools are:
 - PSD files are a bit more powerful and flexible for creating certain image elements
