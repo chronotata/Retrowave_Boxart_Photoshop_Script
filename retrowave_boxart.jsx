@@ -16,6 +16,7 @@ if (app.documents.length > 0) {
     var layerSet_title = myDocument.layerSets["Title goes there"];
     var layerSet_ss = myDocument.layerSets["Image goes there"];
     var layerSet_backtitle = myDocument.layerSets["Backtitle Layer"];
+    var check_file_extensions = [".tif", ".jpg", ".jpeg", ".png", ".bmp"];
 
     // PNG save options
     var pngOptions = new PNGSaveOptions()
@@ -42,12 +43,17 @@ if (app.documents.length > 0) {
                 var arr_title = [];
                 var arr_ss = [];
 
+                // Get names without file extensions - to avoid issues with mixed image file types
                 for (var i = 0; i < files_title.length; i++) {
-                  arr_title.push(files_title[i].name.toString());
+                  raw_title_name = files_title[i].name.toString();
+                  base_title_name = raw_title_name.match(/(.*)\.[^\.]+$/)[1];
+                  arr_title.push(base_title_name);
                 };
 
                 for (var i = 0; i < files_ss.length; i++) {
-                  arr_ss.push(files_ss[i].name.toString());
+                  raw_ss_name = files_ss[i].name.toString();
+                  base_ss_name = raw_ss_name.match(/(.*)\.[^\.]+$/)[1];
+                  arr_ss.push(base_ss_name);
                 };
 
                 // Merge the arrays and drop duplicates
@@ -135,8 +141,15 @@ if (app.documents.length > 0) {
 
                         // Replace the reference screenshot with the game's
                         // screenshot and resize accordingly
-                        // replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", folder_ss.getFiles(searchRegExp)[0], "exceed");
-                        replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", File(thePath + "/screenshot/" + arr_unique[i]), "exceed");
+
+                        // Loop through each common image extension to find image
+                        for (var j = 0; j < check_file_extensions.length; j++) {
+                          if (File(thePath + "/screenshot/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                            found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                          }
+                        }
+
+                        replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", File(thePath + "/screenshot/" + found_ss_filename), "exceed");
 
 
                         // Delete the raw screenshot layer
@@ -155,8 +168,15 @@ if (app.documents.length > 0) {
 
                         // Replace the reference title with the game's
                         // title and resize accordingly
-                        // replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", folder_title.getFiles(searchRegExp)[0], "constrain");
-                        replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", File(thePath + "/title/" + arr_unique[i]), "constrain");
+
+                        // Loop through each common image extension to find image
+                        for (var j = 0; j < check_file_extensions.length; j++) {
+                          if (File(thePath + "/title/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                            found_title_filename = arr_unique[i] + check_file_extensions[j];
+                          }
+                        }
+
+                        replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", File(thePath + "/title/" + found_title_filename), "constrain");
 
                         // Delete the raw title layer
                         myDocument.layers["raw_title"].remove();
@@ -168,7 +188,8 @@ if (app.documents.length > 0) {
                     }
 
                     // var theNewName = files_title[i].name.match(/(.*)\.[^\.]+$/)[1];
-                    var theNewName = arr_unique[i].match(/(.*)\.[^\.]+$/)[1];
+                    // var theNewName = arr_unique[i].match(/(.*)\.[^\.]+$/)[1];
+                    var theNewName = arr_unique[i]
 
                     var f = new Folder(thePath + "/" + "outputs");
                     if ( ! f.exists ) {
