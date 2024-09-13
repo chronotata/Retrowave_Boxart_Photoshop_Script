@@ -16,191 +16,272 @@ if (app.documents.length > 0) {
     var layerSet_title = myDocument.layerSets["Title goes there"];
     var layerSet_ss = myDocument.layerSets["Image goes there"];
     var layerSet_backtitle = myDocument.layerSets["Backtitle Layer"];
+    var layerSet_hidden = myDocument.layerSets["Hidden"];
     var check_file_extensions = [".tif", ".jpg", ".jpeg", ".png", ".bmp"];
 
+    try {
+        var layer_box_perm = myDocument.layerSets["Hidden"].layers["Box placeholder"];
+        var layer_boxback = myDocument.layerSets["Hidden"].layers["Boxback"];
+        // var layer_boxback_tex = myDocument.layerSets["Hidden"].layers["Boxback texture"];
+        var layerSet_box = myDocument.layerSets["Boxart goes here"];
+        var layerSet_boxback = myDocument.layerSets["Boxart Back"];
+    }
+    catch (e) {
+        // if box art layers don't exist, do nothing here
+    }
+
     // PNG save options
-    var pngOptions = new PNGSaveOptions()
-    pngOptions.compression = 6
-    pngOptions.interlaced = false
+    var pngOptions = new PNGSaveOptions();
+    pngOptions.compression = 6;
+    pngOptions.interlaced = false;
 
     // Check if all layers are found
     if (layer_title_perm && layer_ss_perm) {
         // Select Files for 'title' Smart Object
         // var folder1 = Folder.selectDialog("Select folder for the 'title' smart object images");
-        var folder_title = Folder(thePath + "/title")
+        var folder_title = Folder(thePath + "/title");
+        var folder_ss = Folder(thePath + "/screenshot");
+        var folder_box = Folder(thePath + "/box");
+
+        // Get all the file names from both folders
+        var arr_title = [];
+        var arr_ss = [];
+        var arr_box = [];
+
         if (folder_title) {
             var files_title = folder_title.getFiles(/\.(psd|tif|jpg|png)$/i);
-            // alert(files1.length.toString() + " files detected");
 
-            // Select Files for 'screenshot' Smart Object
-            // var folder2 = Folder.selectDialog("Select folder for the 'screenshot' smart object images");
-            var folder_ss = Folder(thePath + "/screenshot")
-            if (folder_ss) {
-                var files_ss = folder_ss.getFiles(/\.(psd|tif|jpg|png)$/i);
-                // alert(files2.length.toString() + " files detected");
+            for (var i = 0; i < files_title.length; i++) {
+                raw_title_name = files_title[i].name.toString();
+                base_title_name = raw_title_name.match(/(.*)\.[^\.]+$/)[1];
+                arr_title.push(base_title_name);
+            };
+        }
 
-                // Get all the file names from both folders
-                var arr_title = [];
-                var arr_ss = [];
+        if (folder_ss) {
+            var files_ss = folder_ss.getFiles(/\.(psd|tif|jpg|png)$/i);
 
-                // Get names without file extensions - to avoid issues with mixed image file types
-                for (var i = 0; i < files_title.length; i++) {
-                  raw_title_name = files_title[i].name.toString();
-                  base_title_name = raw_title_name.match(/(.*)\.[^\.]+$/)[1];
-                  arr_title.push(base_title_name);
-                };
+            for (var i = 0; i < files_ss.length; i++) {
+                raw_ss_name = files_ss[i].name.toString();
+                base_ss_name = raw_ss_name.match(/(.*)\.[^\.]+$/)[1];
+                arr_ss.push(base_ss_name);
+            };
+        }
 
-                for (var i = 0; i < files_ss.length; i++) {
-                  raw_ss_name = files_ss[i].name.toString();
-                  base_ss_name = raw_ss_name.match(/(.*)\.[^\.]+$/)[1];
-                  arr_ss.push(base_ss_name);
-                };
+        // Merge the arrays and drop duplicates
+        var arr_combined = arr_title.concat(arr_ss);
 
-                // Merge the arrays and drop duplicates
-                var arr_combined = arr_title.concat(arr_ss);
+        if (folder_box) {
+            var files_box = folder_box.getFiles(/\.(psd|tif|jpg|png)$/i);
 
-                // Need to write a special iterative function to drop duplicates
-                // because Photoshop's JS "in" comparison doesn't work with special
-                // characters which the scaped images files will have
-                // Removing special characters not an option since that will break
-                // being able to look up image by name
-                var arr_unique = [];
+            for (var i = 0; i < files_box.length; i++) {
+                raw_box_name = files_box[i].name.toString();
+                base_box_name = raw_box_name.match(/(.*)\.[^\.]+$/)[1];
+                arr_box.push(base_box_name);
+            };
 
-                // Iterate through each element in combined array
-                for (var i = 0; i < arr_combined.length; i++) {
-
-                  // Check the element in combined array if it is already inside unique array
-                  var find_counter = 0;
-
-                  // Loop through each element already in the unique array
-                  for (var j = 0; j < arr_unique.length; j++) {
-
-                    // If a repeat values is found, iterate find counter and break loop
-                    if (arr_combined[i] == arr_unique[j]) {
-                      find_counter = find_counter + 1;
-                      break;
-                    }
-                  }
-
-                  // If the loop is complete without find_counter being iterated,
-                  // add the new unique element to unique array
-                  if (find_counter == 0) {
-                    arr_unique.push(arr_combined[i])
-                  }
-                }
-
-                // Iterate through each detected game
-                for (var i = 0; i < arr_unique.length; i++) {
-                    // alert(files_title[i].name);
-                    // alert(arr_unique[i]);
-                    var searchString = arr_unique[i];
-                    searchString = searchString.replace(/([<>*()?+])/g, "\\$1");
-                    // searchString = searchString.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
-                    // searchString = '^'+searchString+'$';
-                    // alert(searchString);
-                    var searchRegExp = new RegExp(searchString);
-
-                    // If there are layers in the title and screenshot sets, delete them first
-                    try {
-                      layerSet_title.layers[0].remove()
-                    } catch (e) {
-                      null;
-                    }
-                    try {
-                      layerSet_ss.layers[0].remove()
-                    } catch (e) {
-                      null;
-                    }
-                    try {
-                      layerSet_backtitle.layers[0].remove()
-                    } catch (e) {
-                      null;
-                    }
-
-                    // Duplicate permanent title and screenshot placeholders
-                    // and move them to the correct sets
-                    layer_title_perm.duplicate(layerSet_title, ElementPlacement.PLACEATEND);
-                    var layer_title = layerSet_title.layers["Calque 5 copy"];
-                    myDocument.activeLayer = layer_title;
-                    runMenuItem(stringIDToTypeID('newPlacedLayer'));
-                    var layer_title = layerSet_title.layers["Calque 5 copy"];
-
-                    layer_ss_perm.duplicate(layerSet_ss, ElementPlacement.PLACEATEND);
-                    var layer_ss = layerSet_ss.layers["Calque 6 copy"];
-                    myDocument.activeLayer = layer_ss;
-                    runMenuItem(stringIDToTypeID('newPlacedLayer'));
-                    var layer_ss = layerSet_ss.layers["Calque 6 copy"];
-
-                    // If the title image for the game exists, process the title image
-                    // otherwise, leave it blank
-                    if (folder_ss.getFiles(searchRegExp).length > 0) {
-                        // Put raw screenshot image into new layer
-                        myDocument.activeLayer = layer0;
-                        addFileNewLayer(folder_ss.getFiles(searchRegExp)[0]);
-                        myDocument.activeLayer.name = "raw_screenshot";
-
-                        // Replace the reference screenshot with the game's
-                        // screenshot and resize accordingly
-
-                        // Loop through each common image extension to find image
-                        for (var j = 0; j < check_file_extensions.length; j++) {
-                          if (File(thePath + "/screenshot/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                            found_ss_filename = arr_unique[i] + check_file_extensions[j];
-                          }
-                        }
-
-                        replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6 copy", File(thePath + "/screenshot/" + found_ss_filename), "exceed");
+            arr_combined = arr_combined.concat(arr_box);
+        }
 
 
-                        // Delete the raw screenshot layer
-                        myDocument.layers["raw_screenshot"].remove();
-                    } else {
-                      layerSet_ss.layers[0].remove();
-                    }
+        // Need to write a special iterative function to drop duplicates
+        // because Photoshop's JS "in" comparison doesn't work with special
+        // characters which the scaped images files will have
+        // Removing special characters not an option since that will break
+        // being able to look up image by name
+        var arr_unique = [];
 
-                    // If the screenshot image for the game exists, process the screenshot image
-                    // otherwise, leave it blank
-                    if (folder_title.getFiles(searchRegExp).length > 0) {
-                        // Put raw title image into new layer
-                        myDocument.activeLayer = layer0;
-                        addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
-                        myDocument.activeLayer.name = "raw_title";
+        // Iterate through each element in combined array
+        for (var i = 0; i < arr_combined.length; i++) {
 
-                        // Replace the reference title with the game's
-                        // title and resize accordingly
+          // Check the element in combined array if it is already inside unique array
+          var find_counter = 0;
 
-                        // Loop through each common image extension to find image
-                        for (var j = 0; j < check_file_extensions.length; j++) {
-                          if (File(thePath + "/title/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                            found_title_filename = arr_unique[i] + check_file_extensions[j];
-                          }
-                        }
+          // Loop through each element already in the unique array
+          for (var j = 0; j < arr_unique.length; j++) {
 
-                        replaceContentWithResize("raw_title", layerSet_title, "Calque 5 copy", File(thePath + "/title/" + found_title_filename), "constrain");
-
-                        // Delete the raw title layer
-                        myDocument.layers["raw_title"].remove();
-
-                        // Duplicate the back title layer to the visible set
-                        layer_backtitle.duplicate(layerSet_backtitle, ElementPlacement.PLACEATEND);
-                    } else {
-                      layerSet_title.layers[0].remove();
-                    }
-
-                    // var theNewName = files_title[i].name.match(/(.*)\.[^\.]+$/)[1];
-                    // var theNewName = arr_unique[i].match(/(.*)\.[^\.]+$/)[1];
-                    var theNewName = arr_unique[i]
-
-                    var f = new Folder(thePath + "/" + "outputs");
-                    if ( ! f.exists ) {
-	                      f.create()
-                    }
-
-                    // Save as PNG
-                    myDocument.saveAs(new File(thePath + "/" + "outputs/" + theNewName + ".png"), pngOptions, true);
-                }
-
+            // If a repeat values is found, iterate find counter and break loop
+            if (arr_combined[i] == arr_unique[j]) {
+              find_counter = find_counter + 1;
+              break;
             }
+          }
+
+          // If the loop is complete without find_counter being iterated,
+          // add the new unique element to unique array
+          if (find_counter == 0) {
+            arr_unique.push(arr_combined[i])
+          }
+        }
+
+        // Iterate through each detected game
+        for (var i = 0; i < arr_unique.length; i++) {
+            // alert(files_title[i].name);
+            // alert(arr_unique[i]);
+            var searchString = arr_unique[i];
+            // Add escape character before special characters in file name
+            searchString = searchString.replace(/([<>*()?+$])/g, "\\$1");
+            // searchString = searchString.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
+            // searchString = '^'+searchString+'$';
+            // alert(searchString);
+            var searchRegExp = new RegExp(searchString);
+
+            // If there are layers in the title and screenshot sets, delete them first
+            try {
+              layerSet_title.layers[0].remove();
+            } catch (e) {
+              null;
+            }
+            try {
+              layerSet_ss.layers[0].remove();
+            } catch (e) {
+              null;
+            }
+            try {
+              layerSet_box.layers[0].remove();
+            } catch (e) {
+              null;
+            }
+
+            // If there are layers in the back panel layers, move them back to the hidden folder
+            try {
+              while (layerSet_backtitle.layers[0]) {
+                // layerSet_backtitle.layers[0].remove()
+                layerSet_backtitle.layers[0].move(layerSet_hidden, ElementPlacement.PLACEATEND);
+              }
+            } catch (e) {
+              null;
+            }
+            try {
+              while (layerSet_boxback.layers[0]) {
+                // layerSet_boxback.layers[0].remove()
+                layerSet_boxback.layers[0].move(layerSet_hidden, ElementPlacement.PLACEATEND);
+              }
+            } catch (e) {
+              null;
+            }
+
+            // If the title image for the game exists, process the title image
+            // otherwise, leave it blank
+            if (folder_ss.getFiles(searchRegExp).length > 0) {
+                // Put raw screenshot image into new layer
+                myDocument.activeLayer = layer0;
+                addFileNewLayer(folder_ss.getFiles(searchRegExp)[0]);
+                myDocument.activeLayer.name = "raw_screenshot";
+
+                // Move raw box image to the layer set
+                myDocument.layers["raw_screenshot"].move(layerSet_ss, ElementPlacement.PLACEATEND);
+
+                // Loop through each common image extension to find image
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/screenshot/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
+
+                // Get resolution (PPI) of raw file to determine real size
+                app.open(new File(thePath + "/screenshot/" + found_ss_filename));
+                var raw_res = app.activeDocument.resolution ;
+                app.activeDocument.close();
+
+                // Add image and resize based on the reference placeholder
+                replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6", File(thePath + "/screenshot/" + found_ss_filename), "exceed", "", raw_res);
+
+
+                // // Delete the raw screenshot layer
+                // myDocument.layers["raw_screenshot"].remove();
+            } else {
+              try {
+                layerSet_ss.layers[0].remove();
+              } catch (e) {
+                  // Do nothing
+              }
+            }
+
+            // If the screenshot image for the game exists, process the screenshot image
+            // otherwise, leave it blank
+            if (folder_title.getFiles(searchRegExp).length > 0) {
+                // Put raw title image into new layer
+                myDocument.activeLayer = layer0;
+                addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
+                myDocument.activeLayer.name = "raw_title";
+
+                // Move raw box image to the layer set
+                myDocument.layers["raw_title"].move(layerSet_title, ElementPlacement.PLACEATEND);
+
+                // Loop through each common image extension to find image
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/title/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    found_title_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
+
+                // Get resolution (PPI) of raw file to determine real size
+                app.open(new File(thePath + "/title/" + found_title_filename));
+                var raw_res = app.activeDocument.resolution ;
+                app.activeDocument.close();
+
+                // Add image and resize based on the reference placeholder
+                replaceContentWithResize("raw_title", layerSet_title, "Calque 5", File(thePath + "/title/" + found_title_filename), "constrain", "", raw_res);
+
+                // Duplicate the back title layer to the visible set
+                layer_backtitle.move(layerSet_backtitle, ElementPlacement.PLACEATEND);
+            } else {
+              try {
+                layerSet_title.layers[0].remove();
+              } catch (e) {
+                  // Do nothing
+              }
+            }
+
+            // If the box image for the game exists, process the box image
+            // otherwise, leave it blank
+            if ((folder_box.getFiles(searchRegExp).length > 0) && (layer_box_perm)) {
+                // Put raw box image into new layer
+                myDocument.activeLayer = layer0;
+                addFileNewLayer(folder_box.getFiles(searchRegExp)[0]);
+                myDocument.activeLayer.name = "raw_box";
+
+                // Move raw box image to the layer set
+                myDocument.layers["raw_box"].move(layerSet_box, ElementPlacement.PLACEATEND);
+
+                // Loop through each common image extension to find image
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/box/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    found_box_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
+
+                // Get resolution (PPI) of raw file to determine real size
+                app.open(new File(thePath + "/title/" + found_title_filename));
+                var raw_res = app.activeDocument.resolution ;
+                app.activeDocument.close();
+
+                // Add image and resize based on the reference placeholder
+                // For boxart, anchor resize to centre right (rather than centre) of image
+                replaceContentWithResize("raw_box", layerSet_box, "Box placeholder", File(thePath + "/box/" + found_box_filename), "constrain", "CENTERRIGHT", raw_res);
+
+                // Duplicate the back title layer to the visible set
+                layer_boxback.move(layerSet_boxback, ElementPlacement.PLACEATEND);
+            } else {
+              try {
+                  layerSet_box.layers[0].remove();
+              } catch (e) {
+                  // Do nothing
+              }
+            }
+
+            // var theNewName = files_title[i].name.match(/(.*)\.[^\.]+$/)[1];
+            // var theNewName = arr_unique[i].match(/(.*)\.[^\.]+$/)[1];
+            var theNewName = arr_unique[i]
+
+            var f = new Folder(thePath + "/" + "outputs");
+            if ( ! f.exists ) {
+                f.create()
+            }
+
+            // Save as PNG
+            myDocument.saveAs(new File(thePath + "/" + "outputs/" + theNewName + ".png"), pngOptions, true);
         }
     } else {
         alert("One or more of the 'title' or 'screenshot' smart objects were not found in the document.");
@@ -255,58 +336,132 @@ function addFileNewLayer(newFile) {
     return app.activeDocument.activeLayer;
 }
 
-function replaceContentWithResize(rawLayerName, refLayerSet, refLayerName, replaceFile, logic) {
-    // Get the width/height ratio of the raw screenshot
 
-    var rawImgLayer = myDocument.layers[rawLayerName]
+function replaceContentWithResize(rawLayerName, refLayerSet, refLayerName, replaceFile, logic, anchor, raw_res) {
+
+    // Temporarily move the raw layer to Hidden set, as some sets have outline and drop shadow effects which interfere with size calculation
+    refLayerSet.layers[rawLayerName].move(myDocument.layerSets["Hidden"], ElementPlacement.PLACEATEND);
+
+    var rawImgLayer = myDocument.layerSets["Hidden"].layers[rawLayerName]
+
+    // Get PPI of the template doc (default is 72)
+    var doc_res = app.activeDocument.resolution ;
+    // alert("doc res: " + doc_res + "   raw res: " + raw_res);
+
+    // If the raw image PPI is not the same as the template PPI, then resize the image to correct for Photoshop downscaling it
+    // If the raw PPI is larger than the template PPI, the image get downscaled, so needs to be upscaled to correct
+    // If raw PPI is less than template PPI, just leave it, otherwise there will probably be over-downscaling, as the placed smart object will be limited by canvas size
+    if (doc_res < raw_res) {
+      var ppi_ratio = (raw_res / doc_res) * 100;
+
+      // alert("resize due to mismatch ratio: " + ppi_ratio);
+
+      rawImgLayer.resize(ppi_ratio, ppi_ratio);
+    }
+
+    // Get the width/height ratio of the raw screenshot
     var rawBounds = rawImgLayer.bounds;
     var rawWidth = rawBounds[2] - rawBounds[0];
     var rawHeight = rawBounds[3] - rawBounds[1];
     var rawRatio = rawWidth / rawHeight;
 
+    var min_side = Math.min(rawWidth, rawHeight);
+    var max_side = Math.max(rawWidth, rawHeight);
+
+    // alert('max_side: ' + max_side);
+
     // Get the width/height ratio of the ref screenshot
-    var refLayer = refLayerSet.layers[refLayerName];
+    var refLayer = myDocument.layerSets["Hidden"].layers[refLayerName];
     var refBounds = refLayer.bounds;
     var refWidth = refBounds[2] - refBounds[0];
     var refHeight = refBounds[3] - refBounds[1];
     var refRatio = refWidth / refHeight;
 
-    // Transform the reference Smart Object to be the same ratio as the raw image.
-    // If the ratio between the raw image width to height is smaller than the
-    // ratio between the reference width to height (e.g. the raw image
-    // is narrower), then the reference image should  have its height increased.
-    // Otherwise, the reference image should have its width stretched to match
-    // the raw image ratio
-
-    // Make the Smart Object the same size as the original images
-    var ratioHeight = rawHeight / refHeight * 100;
-    var ratioWidth = rawWidth / refWidth * 100;
-
-    refLayer.resize(ratioWidth, ratioHeight);
-
-    // Rasterise then convert back to Smart Object to reset the size
-    refLayer.rasterize(RasterizeType.ENTIRELAYER);
-    myDocument.activeLayer = refLayer;
-    runMenuItem(stringIDToTypeID('newPlacedLayer'));
-    var refLayer = refLayerSet.layers[0];
-
-    // Replace Smart Objects
-    refLayer = replaceContents(replaceFile, refLayer);
-
-    // When the Smart Object is replaced, it might become
-    // smaller if the raw file is smaller than the size
-    // of the Smart Object. Therefore, need to resize the
-    // Smart Object again so it is the right dimension
+    // alert("Raw width: " + rawWidth + "   Raw height: " + rawHeight + "   Ref width: " + refWidth + "   Ref height: " + refHeight);
 
     // Get the width/height ratio of the placed screenshot
-    var placedBounds = refLayer.bounds;
+    var placedBounds = rawImgLayer.bounds;
     var placedWidth = placedBounds[2] - placedBounds[0];
     var placedHeight = placedBounds[3] - placedBounds[1];
 
-    // Transform the size to match the original ref image
+    // Calculate the ratio with which to resize the image
     ratio2 = resizeWithLogic(refWidth, refHeight, placedWidth, placedHeight, logic);
 
-    refLayer.resize(ratio2.ratioWidth2, ratio2.ratioHeight2);
+    // If maximum side is less than 200 pixels and is an enlargement transformation (i.e. ratio is larger than 100%), set interpolation method to Nearest Neighbour
+    if ((max_side < 200) && ((ratio2.ratioWidth2 > 100) || (ratio2.ratioHeight > 100))) {
+      app.preferences.interpolation = ResampleMethod.NEARESTNEIGHBOR;
+    } else {
+      app.preferences.interpolation = ResampleMethod.BICUBICAUTOMATIC;
+    }
+
+    // Resizing the pasted image basd on the template
+    rawImgLayer.resize(ratio2.ratioWidth2, ratio2.ratioHeight2);
+
+    // Move the transformed raw image to the location of the reference image
+    // Use centre of image as reference in most cases, unless specified Otherwise
+    if (anchor == 'BOTTOMRIGHT') {
+        // Get bottom right location of the reference image
+        var ref_x_loc = refBounds[2];
+        var ref_y_loc = refBounds[3];
+
+        // Get centre location of the transformed raw image
+        var transBounds = rawImgLayer.bounds;
+        var transWidth = transBounds[2] - transBounds[0];
+        var transHeight = transBounds[3] - transBounds[1];
+
+        var trans_x_loc = transBounds[2];
+        var trans_y_loc = transBounds[3];
+
+        // Translate the transformed layer to location of reference layer
+        var deltaX = Math.round(ref_x_loc - trans_x_loc);
+        var deltaY = Math.round(ref_y_loc - trans_y_loc);
+
+        rawImgLayer.translate(deltaX, deltaY);
+
+    } else if (anchor == 'CENTERRIGHT') {
+        // Get centre right location of the reference image
+        var ref_x_loc = refBounds[0] + refWidth / 2;
+        var ref_y_loc = refBounds[3];
+
+        // Get centre location of the transformed raw image
+        var transBounds = rawImgLayer.bounds;
+        var transWidth = transBounds[2] - transBounds[0];
+        var transHeight = transBounds[3] - transBounds[1];
+
+        var trans_x_loc = transBounds[0] + transWidth / 2;
+        var trans_y_loc = transBounds[3];
+
+        // Translate the transformed layer to location of reference layer
+        var deltaX = Math.round(ref_x_loc - trans_x_loc);
+        var deltaY = Math.round(ref_y_loc - trans_y_loc);
+
+        rawImgLayer.translate(deltaX, deltaY);
+
+    } else {
+      // Get centre location of the reference image
+      var ref_x_loc = refBounds[0] + refWidth / 2;
+      var ref_y_loc = refBounds[1] + refHeight / 2;
+
+      // Get centre location of the transformed raw image
+      var transBounds = rawImgLayer.bounds;
+      var transWidth = transBounds[2] - transBounds[0];
+      var transHeight = transBounds[3] - transBounds[1];
+
+      var trans_x_loc = transBounds[0] + transWidth / 2;
+      var trans_y_loc = transBounds[1] + transHeight / 2;
+
+      // Translate the transformed layer to location of reference layer
+      var deltaX = Math.round(ref_x_loc - trans_x_loc);
+      var deltaY = Math.round(ref_y_loc - trans_y_loc);
+
+      rawImgLayer.translate(deltaX, deltaY);
+    }
+
+    // Reset interpolation method to Bicubic Automatic
+    app.preferences.interpolation = ResampleMethod.BICUBICAUTOMATIC;
+
+    // Move back to the ref layer set
+    myDocument.layerSets["Hidden"].layers[rawLayerName].move(refLayerSet, ElementPlacement.PLACEATEND);
 }
 
 // Return the transform ratios depending on the logic given
@@ -328,6 +483,8 @@ function resizeWithLogic(refWidth, refHeight, placedWidth, placedHeight, logic) 
         var ratioHeight2 = refHeight / placedHeight * 100;
         var ratioWidth2 = ratioHeight2;
       }
+
+      // alert("ratioWidth2: " + ratioWidth2 + "   refWidth: " + refWidth + "   refHeight: " + refHeight + "   placedWidth: " + placedWidth + "   placedHeight: " + placedHeight);
     } else if (logic == "constrain") {
       // If don't allow to exceed canvas edge, apply this logic
 
