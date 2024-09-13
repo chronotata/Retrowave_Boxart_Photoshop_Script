@@ -1,16 +1,16 @@
 # Retrowave Theme Boxart Automated Script for Photoshop
 
-![muOS_20240806_0140_0](https://github.com/user-attachments/assets/2814f850-098b-40bf-92e2-e2a4c7f3f927)
+![muOS_20240914_0019_0](https://github.com/user-attachments/assets/520ff583-9bce-47a3-b1d5-415fc532c2f4)
 
 ## What is this?
 
-An automated script for Photoshop, along with the necessary PSD file, in order to create boxarts to fit the excellent RetroWave theme for MuOS for the Anbenic RG35XX family of retro handheld devices.
+An automated script for Photoshop, along with the necessary PSD files, in order to create boxarts to fit the excellent RetroWave theme for MuOS for the Anbenic RG35XX family of retro handheld devices.
 
 MuOS: https://muos.dev/
 
 RetroWave theme on the MuOS official Discord: https://discord.com/channels/1152022492001603615/1248730050661191790
 
-While the RetroWave theme comes with a Photoshop template for the user to create boxarts for their own use or to share with others, it is a manual process, so I have created this script which should save a lot of time, if you have already pre-scraped the screenshots and titles for your games.
+While the RetroWave theme comes with a Photoshop template for the user to create boxarts for their own use or to share with others, it is a manual process, so I have created this script which should save a lot of time, if you have already pre-scraped the screenshots, titles and/or boxes for your games.
 
 ## Disclaimers
 
@@ -20,13 +20,24 @@ Other users have created Skraper and Boxart Buddy templates for this theme. If y
 
 The advantages of using a Photoshop script as opposed to XML templates for scraping tools are:
 - PSD files are a bit more powerful and flexible for creating certain image elements
-- In the future, you could get new and alternate versions of the PSD templates and apply them to your pre-scraped files with this script, rather than having to re-scrape everything
+- In the future, ability to generate alternate mixes made using PSD templates on pre-scraped files with this script, rather than having to re-scrape everything
+
+## Available Mixes
+
+Choose between the original mix created by the theme creator:
+
+![Final Fantasy VII](https://github.com/user-attachments/assets/e9d7e41e-f568-412b-9837-77e4a8d6d538)
+
+Or my own "remix" which has different placements and with game boxes for games that have them:
+
+![Final Fantasy VII](https://github.com/user-attachments/assets/ec969d00-7f30-4b65-a5f5-5b8412c393e7)
+
 
 ## How to use?
 
-### 1) Pre-scrape "Titles" and "Screenshots" for your ROMs
+### 1) Pre-scrape Titles/Screenshots/Boxes for your ROMs
 
-For each of your ROM, you want to have the Title image and Screenshot image, stored separately in each folder. Each image should be in PNG format, and has exactly the same name as your ROM file.
+For each of your ROM, you want to have the Title image and Screenshot image, and optionally Box image for my remix, stored separately in each folder. Each image should have exactly the same name as your ROM file.
 
 You can easily do this by using Skraper or any similar retro game boxart scraping tools.
 
@@ -42,7 +53,11 @@ And for the screenshots, you will want to scrape the Media Type "Image" and then
 
 ![skrapers_screenshot](https://github.com/user-attachments/assets/c97fdc56-9a5e-4899-961b-50ef5913f053)
 
-Make sure you select different output folders for the titles and screenshots otherwise they might overwrite each other.
+For boxes, scrape "Box 2D"
+
+![skrapers_box](https://github.com/user-attachments/assets/db3c587f-8139-40c3-af3d-9da5d6a51cd2)
+
+Make sure you select different output folders for each scaped element otherwise they might overwrite each other. You can scrape them all at the same time by using the + icon and add more images to scrape.
 
 
 ### 2) Put all the files in the right folders
@@ -53,7 +68,9 @@ Create a new folder anywhere on your computer, and create 2 subfolder there, "ti
 
 ![screenshot_folder](https://github.com/user-attachments/assets/4eac2f13-beda-41bb-9348-938788aefb2b)
 
-Now, download the "retrowave_boxart.jsx" Javascript file and "RetroWave-game-boxarts_edit.psd" Photoshop file from this repository and put them in the same folder.
+For my remix, also put the box images in the "box" folder.
+
+Now, download the "retrowave_boxart.jsx" Javascript file and either "RetroWave_game_box_Original_Mix.psd" Photoshop file for the original mix, or "RetroWave_game_box_Chrono_Mix.psd" for my remix, from this repository and put them in the same folder.
 
 ![input_files](https://github.com/user-attachments/assets/c8680da7-45f0-4afb-afe8-e57d18a6b7a6)
 
