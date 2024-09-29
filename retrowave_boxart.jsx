@@ -22,12 +22,22 @@ if (app.documents.length > 0) {
     try {
         var layer_box_perm = myDocument.layerSets["Hidden"].layers["Box placeholder"];
         var layer_boxback = myDocument.layerSets["Hidden"].layers["Boxback"];
-        // var layer_boxback_tex = myDocument.layerSets["Hidden"].layers["Boxback texture"];
         var layerSet_box = myDocument.layerSets["Boxart goes here"];
         var layerSet_boxback = myDocument.layerSets["Boxart Back"];
     }
     catch (e) {
         // if box art layers don't exist, do nothing here
+    }
+
+    try {
+        var layerSet_tempVisible = myDocument.layerSets["Temp visible"];
+        var layerSet_titleBlack = myDocument.layerSets["Title goes there BlackBorder"];
+        var layerSet_titleWhite = myDocument.layerSets["Title goes there WhiteBorder"];
+        var layer_whiteBack = myDocument.layerSets["Hidden"].layers["White Background"];
+        var layer_blackBack = myDocument.layerSets["Hidden"].layers["Black Background"];
+    }
+    catch (e) {
+        // if outlined title layers don't exist, do nothing here
     }
 
     // PNG save options
@@ -133,6 +143,16 @@ if (app.documents.length > 0) {
               null;
             }
             try {
+              layerSet_titleBlack.layers[0].remove();
+            } catch (e) {
+              null;
+            }
+            try {
+              layerSet_titleWhite.layers[0].remove();
+            } catch (e) {
+              null;
+            }
+            try {
               layerSet_ss.layers[0].remove();
             } catch (e) {
               null;
@@ -163,6 +183,244 @@ if (app.documents.length > 0) {
 
             // If the title image for the game exists, process the title image
             // otherwise, leave it blank
+            if (folder_title.getFiles(searchRegExp).length > 0) {
+                // Put raw title image into new layer
+                myDocument.activeLayer = layer0;
+                addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
+                myDocument.activeLayer.name = "raw_title";
+
+                // Move raw box image to the layer set
+                myDocument.layers["raw_title"].move(layerSet_title, ElementPlacement.PLACEATEND);
+
+                // Loop through each common image extension to find image
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/title/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    var found_title_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
+
+                // Get resolution (PPI) of raw file to determine real size
+                app.open(new File(thePath + "/title/" + found_title_filename));
+                var raw_res = app.activeDocument.resolution ;
+                app.activeDocument.close();
+
+                // Add image and resize based on the reference placeholder
+                replaceContentWithResize("raw_title", layerSet_title, "Calque 5", File(thePath + "/title/" + found_title_filename), "constrain", "", raw_res);
+
+                // If the temp visible layer exists
+                if (layerSet_tempVisible) {
+                  // Temporarily move the raw_screenshot layer to the temp visible later to calculate the highlight border pixels
+                  layerSet_title.layers[0].move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                  // Select opaque areas only
+                  selectNonTransparent()
+
+                  // Select inverse
+                  var idInvs = charIDToTypeID( "Invs" );
+                  executeAction( idInvs, undefined, DialogModes.NO);
+
+                  // Expand selection by 2 pixels - to get the borders of the title
+                  app.activeDocument.selection.expand(new UnitValue (2, "px"));
+
+                  // Select only the visible border
+                  colorRangeMidtones(0, 0, 255, 0);
+
+                  // Get number of selected pixels
+                  var visible_border_pxls = getNumSelectedPxls();
+
+                  // Move the white back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                  layer_whiteBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                  // Select only highlight shade pixels (range of 100 to 255)
+                  colorRangeMidtones(0, 200, 255, 0);
+
+                  // Get number of selected highlight pixels
+                  var highlight_border_pxls = getNumSelectedPxls();
+
+                  // Ratio highlight vs all pixels
+                  if (highlight_border_pxls <= visible_border_pxls) {
+                    var highlight_ratio = highlight_border_pxls / visible_border_pxls;
+                  } else {
+                    var highlight_ratio = 0.0;
+                  }
+
+                  // Move white layer back to Hidden
+                  layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                  // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                  // layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                  // Select only very bright shade pixels (range of 100 to 255)
+                  colorRangeMidtones(0, 230, 255, 0);
+
+                  // Get number of selected highlight pixels
+                  var vbright_border_pxls = getNumSelectedPxls();
+
+                  // Ratio v. bright vs all pixels
+                  if (vbright_border_pxls <= visible_border_pxls) {
+                    var vbright_ratio = vbright_border_pxls / visible_border_pxls;
+                  } else {
+                    var vbright_ratio = 0.0;
+                  }
+
+                  // Move black layer back to Hidden
+                  // layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                  // Select opaque areas only
+                  selectNonTransparent()
+
+                  // Select inverse
+                  var idInvs = charIDToTypeID( "Invs" );
+                  executeAction( idInvs, undefined, DialogModes.NO);
+
+                  // Expand selection by 2 pixels - to get the borders of the title
+                  app.activeDocument.selection.expand(new UnitValue (2, "px"));
+
+                  // Select only the visible border
+                  colorRangeMidtones(0, 0, 255, 0);
+
+                  // Get number of selected pixels
+                  // var visible_border_pxls = getNumSelectedPxls();
+
+                  // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                  layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                  // Select only shadow shade pixels (range of 0 to 80)
+                  // colorRangeMidtones(0, 0, 30, 0);
+                  colorRangeMidtones(0, 0, 80, 0);
+
+                  // Get number of selected shadow pixels
+                  var shadow_border_pxls = getNumSelectedPxls();
+
+                  // Ratio shadow vs all pixels
+                  if (shadow_border_pxls <= visible_border_pxls) {
+                    var shadow_ratio = shadow_border_pxls / visible_border_pxls;
+                  } else {
+                    var shadow_ratio = 0.0;
+                  }
+
+                  // Move black layer back to Hidden
+                  layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                  // Move the white back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                  layer_whiteBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                  // Select only very dark shade pixels (range of 100 to 255)
+                  // colorRangeMidtones(0, 0, 10, 0);
+                  colorRangeMidtones(0, 0, 35, 0);
+
+                  // Move white layer back to Hidden
+                  layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                  // Get number of selected highlight pixels
+                  var vdark_border_pxls = getNumSelectedPxls();
+
+                  // Ratio v. bright vs all pixels
+                  if (vdark_border_pxls <= visible_border_pxls) {
+                    var vdark_ratio = vdark_border_pxls / visible_border_pxls;
+                  } else {
+                    var vdark_ratio = 0.0;
+                  }
+
+                  // alert("Highlight %:" + highlight_ratio + "    Shadow %:" + shadow_ratio + "    V. Bright %:" + vbright_ratio + "    V. Dark %:" + vdark_ratio);
+
+                  // If the ratio is lower than 25%, move the image back to the title layer set with white border
+                  // Otherwise, send to set with black border
+                  // if (highlight_ratio > 0.70) {
+                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  // } else {
+                  //     if (vbright_ratio > 0.10) {
+                  //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //     } else {
+                  //         if (vdark_ratio < Math.min(vbright_ratio, 0.10)) {
+                  //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //         } else {
+                  //           if (highlight_ratio < 0.40) {
+                  //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //           } else {
+                  //               if (shadow_ratio > 0.30) {
+                  //                 layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //               } else {
+                  //                 layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //               }
+                  //           }
+                  //         }
+                  //     }
+                  // }
+
+                  // if (highlight_ratio > 0.70) {
+                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  // } else {
+                  //     if (vbright_ratio > 0.10) {
+                  //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //     } else {
+                  //         if (highlight_ratio < 0.40) {
+                  //             if (vdark_ratio >= vbright_ratio) {
+                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //             } else {
+                  //                 if (vbright_ratio > 0.05) {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //                 } else {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //                 }
+                  //             }
+                  //         } else {
+                  //           if (shadow_ratio > 0.30) {
+                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //             } else {
+                  //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //             }
+                  //         }
+                  //     }
+                  // }
+
+                  if (highlight_ratio > 0.70) {
+                    layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  } else {
+                      if (vbright_ratio > 0.10) {
+                          if (vdark_ratio >= vbright_ratio) {
+                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                          } else {
+                              if (vbright_ratio > 0.40) {
+                                layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                              } else {
+                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                              }
+                          }
+                      } else {
+                          if (highlight_ratio < 0.40) {
+                              if (vdark_ratio >= vbright_ratio) {
+                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                              } else {
+                                  if (vbright_ratio > 0.05) {
+                                    layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                  } else {
+                                    layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                  }
+                              }
+                          } else {
+                            if (shadow_ratio > 0.30) {
+                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                              } else {
+                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                              }
+                          }
+                      }
+                  }
+                }
+
+                // Duplicate the back title layer to the visible set
+                layer_backtitle.move(layerSet_backtitle, ElementPlacement.PLACEATEND);
+            } else {
+              try {
+                layerSet_title.layers[0].remove();
+              } catch (e) {
+                  // Do nothing
+              }
+            }
+
+            // If the screenshot image for the game exists, process the screenshot image
+            // otherwise, leave it blank
             if (folder_ss.getFiles(searchRegExp).length > 0) {
                 // Put raw screenshot image into new layer
                 myDocument.activeLayer = layer0;
@@ -175,7 +433,7 @@ if (app.documents.length > 0) {
                 // Loop through each common image extension to find image
                 for (var j = 0; j < check_file_extensions.length; j++) {
                   if (File(thePath + "/screenshot/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                    found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                    var found_ss_filename = arr_unique[i] + check_file_extensions[j];
                   }
                 }
 
@@ -198,41 +456,7 @@ if (app.documents.length > 0) {
               }
             }
 
-            // If the screenshot image for the game exists, process the screenshot image
-            // otherwise, leave it blank
-            if (folder_title.getFiles(searchRegExp).length > 0) {
-                // Put raw title image into new layer
-                myDocument.activeLayer = layer0;
-                addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
-                myDocument.activeLayer.name = "raw_title";
 
-                // Move raw box image to the layer set
-                myDocument.layers["raw_title"].move(layerSet_title, ElementPlacement.PLACEATEND);
-
-                // Loop through each common image extension to find image
-                for (var j = 0; j < check_file_extensions.length; j++) {
-                  if (File(thePath + "/title/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                    found_title_filename = arr_unique[i] + check_file_extensions[j];
-                  }
-                }
-
-                // Get resolution (PPI) of raw file to determine real size
-                app.open(new File(thePath + "/title/" + found_title_filename));
-                var raw_res = app.activeDocument.resolution ;
-                app.activeDocument.close();
-
-                // Add image and resize based on the reference placeholder
-                replaceContentWithResize("raw_title", layerSet_title, "Calque 5", File(thePath + "/title/" + found_title_filename), "constrain", "", raw_res);
-
-                // Duplicate the back title layer to the visible set
-                layer_backtitle.move(layerSet_backtitle, ElementPlacement.PLACEATEND);
-            } else {
-              try {
-                layerSet_title.layers[0].remove();
-              } catch (e) {
-                  // Do nothing
-              }
-            }
 
             // If the box image for the game exists, process the box image
             // otherwise, leave it blank
@@ -248,7 +472,7 @@ if (app.documents.length > 0) {
                 // Loop through each common image extension to find image
                 for (var j = 0; j < check_file_extensions.length; j++) {
                   if (File(thePath + "/box/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                    found_box_filename = arr_unique[i] + check_file_extensions[j];
+                    var found_box_filename = arr_unique[i] + check_file_extensions[j];
                   }
                 }
 
@@ -540,4 +764,31 @@ function unique(/*str[]*/ arr)
           r.push(i);
 
      return r;
+}
+
+function colorRangeMidtones(midtonesFuzziness, midtonesLowerLimit, midtonesUpperLimit, colorModel) {
+	var s2t = function (s) {
+		return app.stringIDToTypeID(s);
+	};
+	var descriptor = new ActionDescriptor();
+	descriptor.putEnumerated( s2t( "colors" ), s2t( "colors" ), s2t( "midtones" ));
+	descriptor.putInteger( s2t( "midtonesFuzziness" ), midtonesFuzziness );
+	descriptor.putInteger( s2t( "midtonesLowerLimit" ), midtonesLowerLimit );
+	descriptor.putInteger( s2t( "midtonesUpperLimit" ), midtonesUpperLimit );
+	descriptor.putInteger( s2t( "colorModel" ), colorModel );
+	executeAction( s2t( "colorRange" ), descriptor, DialogModes.NO );
+}
+
+function getNumSelectedPxls() {
+  var a = 0, h = app.activeDocument.histogram;
+  for (k=0; k<256;k++) {a+= h[k]}
+  return a
+}
+
+function selectNonTransparent() {
+  sTT = stringIDToTypeID;
+  (ref1 = new ActionReference()).putProperty(c = sTT('channel'), sTT('selection'));
+  (dsc = new ActionDescriptor()).putReference(sTT('null'), ref1);
+  (ref2 = new ActionReference()).putEnumerated(c, c, sTT('transparencyEnum'))
+  dsc.putReference(sTT('to'), ref2), executeAction(sTT('set'), dsc);
 }
