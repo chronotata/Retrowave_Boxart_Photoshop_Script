@@ -212,6 +212,9 @@ if (app.documents.length > 0) {
                   // Temporarily move the raw_screenshot layer to the temp visible later to calculate the highlight border pixels
                   layerSet_title.layers[0].move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
 
+                  // // Rasterise layer
+                  // layerSet_tempVisible.layers[0].rasterize(RasterizeType.ENTIRELAYER);
+
                   // Select opaque areas only
                   selectNonTransparent()
 
@@ -245,7 +248,7 @@ if (app.documents.length > 0) {
                   }
 
                   // Move white layer back to Hidden
-                  layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+                  // layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
 
                   // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
                   // layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
@@ -266,6 +269,9 @@ if (app.documents.length > 0) {
                   // Move black layer back to Hidden
                   // layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
 
+                  // Move white layer back to Hidden
+                  layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
                   // Select opaque areas only
                   selectNonTransparent()
 
@@ -278,9 +284,6 @@ if (app.documents.length > 0) {
 
                   // Select only the visible border
                   colorRangeMidtones(0, 0, 255, 0);
-
-                  // Get number of selected pixels
-                  // var visible_border_pxls = getNumSelectedPxls();
 
                   // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
                   layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
@@ -322,7 +325,34 @@ if (app.documents.length > 0) {
                     var vdark_ratio = 0.0;
                   }
 
-                  // alert("Highlight %:" + highlight_ratio + "    Shadow %:" + shadow_ratio + "    V. Bright %:" + vbright_ratio + "    V. Dark %:" + vdark_ratio);
+                  // Select opaque areas only
+                  selectNonTransparent()
+
+                  // Select inverse
+                  var idInvs = charIDToTypeID( "Invs" );
+                  executeAction( idInvs, undefined, DialogModes.NO);
+
+                  // Expand selection by 2 pixels - to get the borders of the title
+                  app.activeDocument.selection.expand(new UnitValue (2, "px"));
+
+                  // Select only the visible border
+                  colorRangeMidtones(0, 0, 255, 0);
+
+                  // Select yellow colour range areas
+                  colorRangeYellows(0);
+
+                  // Get number of selected shadow pixels
+                  var yellow_border_pxls = getNumSelectedPxls();
+
+                  // Ratio v. bright vs all pixels
+                  if (yellow_border_pxls <= visible_border_pxls) {
+                    var yellow_ratio = yellow_border_pxls / visible_border_pxls;
+                  } else {
+                    var yellow_ratio = 0.0;
+                  }
+
+
+                  // alert("Highlight %:" + highlight_ratio + "    Shadow %:" + shadow_ratio + "    V. Bright %:" + vbright_ratio + "    V. Dark %:" + vdark_ratio + "    Yellow %:" + yellow_ratio);
 
                   // If the ratio is lower than 25%, move the image back to the title layer set with white border
                   // Otherwise, send to set with black border
@@ -374,39 +404,145 @@ if (app.documents.length > 0) {
                   //     }
                   // }
 
-                  if (highlight_ratio > 0.70) {
-                    layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  // if (highlight_ratio > 0.70) {
+                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  // } else {
+                  //     if (shadow_ratio > 0.70) {
+                  //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //     } else {
+                  //         if (vbright_ratio > 0.10) {
+                  //             if (vdark_ratio >= vbright_ratio) {
+                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //             } else {
+                  //                 if (vdark_ratio > 0.10) {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //                 } else {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //                 }
+                  //             }
+                  //         } else {
+                  //             if (highlight_ratio < 0.40) {
+                  //                 if (vdark_ratio >= vbright_ratio) {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //                 } else {
+                  //                     if (vbright_ratio > 0.05) {
+                  //                       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //                     } else {
+                  //                       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //                     }
+                  //                 }
+                  //             } else {
+                  //               if (shadow_ratio > 0.30) {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //                 } else {
+                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //                 }
+                  //             }
+                  //         }
+                  //     }
+                  // }
+
+                  // if (highlight_ratio > 0.65) {
+                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  // } else {
+                  //   if ((highlight_ratio >= shadow_ratio) && (vdark_ratio < 0.01)) {
+                  //     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //   } else {
+                  //     if (shadow_ratio > 0.60) {
+                  //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //     } else {
+                  //       if (vbright_ratio > 0.50) {
+                  //         layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  //       } else {
+                  //         if ((vbright_ratio > 0.25) && (vdark_ratio < 0.10)) {
+                  //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //         } else {
+                  //           if ((vbright_ratio > 0.25) && (vdark_ratio >= 0.10)) {
+                  //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //           } else {
+                  //             if (shadow_ratio > 0.50) {
+                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                  //             } else {
+                  //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                  //             }
+                  //           }
+                  //         }
+                  //       }
+                  //     }
+                  //   }
+                  // }
+
+                  if (yellow_ratio > 0.70) {
+                    layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
                   } else {
-                      if (vbright_ratio > 0.10) {
-                          if (vdark_ratio >= vbright_ratio) {
-                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                    if ((yellow_ratio > 0.40) && (highlight_ratio > 0.60)) {
+                        if (vdark_ratio / shadow_ratio < 0.20) {
+                          layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                        } else {
+                          layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                        }
+                    } else {
+                      if (highlight_ratio > 0.65) {
+                          if (highlight_ratio > shadow_ratio) {
+                            layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                           } else {
-                              if (vbright_ratio > 0.40) {
-                                layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                              } else {
-                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                              }
+                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                           }
                       } else {
-                          if (highlight_ratio < 0.40) {
-                              if (vdark_ratio >= vbright_ratio) {
+                        if (shadow_ratio > 0.70) {
+                          layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                        } else {
+                          if (shadow_ratio > 0.60) {
+                              if (vdark_ratio / shadow_ratio < 0.10) {
                                 layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                               } else {
-                                  if (vbright_ratio > 0.05) {
-                                    layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                  } else {
-                                    layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                  }
+                                layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                               }
                           } else {
-                            if (shadow_ratio > 0.30) {
-                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                            if (vbright_ratio > 0.40) {
+                              layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                            } else {
+                              if (vbright_ratio > 0.30) {
+                                  if (shadow_ratio > 0.40) {
+                                    layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                  } else {
+                                    layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                  }
                               } else {
-                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                if (vbright_ratio > 0.25) {
+                                    if (vdark_ratio < 0.10) {
+                                      layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                    } else {
+                                      layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                    }
+                                } else {
+                                  if (shadow_ratio > highlight_ratio) {
+                                      if (shadow_ratio > 0.50) {
+                                          if (vbright_ratio / highlight_ratio > 0.50) {
+                                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                          } else {
+                                            layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                          }
+                                      } else {
+                                          if (vbright_ratio / highlight_ratio > 0.60) {
+                                            layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                          } else {
+                                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                          }
+                                      }
+                                   } else {
+                                     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                   }
+                                }
                               }
+                            }
                           }
+                        }
                       }
+                    }
                   }
+
+
                 }
 
                 // Duplicate the back title layer to the visible set
@@ -791,4 +927,14 @@ function selectNonTransparent() {
   (dsc = new ActionDescriptor()).putReference(sTT('null'), ref1);
   (ref2 = new ActionReference()).putEnumerated(c, c, sTT('transparencyEnum'))
   dsc.putReference(sTT('to'), ref2), executeAction(sTT('set'), dsc);
+}
+
+function colorRangeYellows(colorModel) {
+	var s2t = function (s) {
+		return app.stringIDToTypeID(s);
+	};
+	var descriptor = new ActionDescriptor();
+	descriptor.putEnumerated( s2t( "colors" ), s2t( "colors" ), s2t( "yellows" ));
+	descriptor.putInteger( s2t( "colorModel" ), colorModel );
+	executeAction( s2t( "colorRange" ), descriptor, DialogModes.NO );
 }
