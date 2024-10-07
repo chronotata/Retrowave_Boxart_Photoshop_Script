@@ -253,7 +253,7 @@ if (app.documents.length > 0) {
                 }
 
                 // Get resolution (PPI) of raw file to determine real size
-                app.open(new File(thePath + "/title/" + found_title_filename));
+                app.open(new File(thePath + "/box/" + found_title_filename));
                 var raw_res = app.activeDocument.resolution ;
                 app.activeDocument.close();
 
