@@ -489,11 +489,11 @@ if (app.documents.length > 0) {
                             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                           }
                       } else {
-                        if (shadow_ratio > 0.70) {
+                        if ((shadow_ratio > 0.70) || (vdark_ratio > 0.20)) {
                           layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                         } else {
                           if (shadow_ratio > 0.60) {
-                              if (vdark_ratio / shadow_ratio < 0.10) {
+                              if (vbright_ratio / highlight_ratio < 0.75) {
                                 layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                               } else {
                                 layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
@@ -503,7 +503,7 @@ if (app.documents.length > 0) {
                               layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                             } else {
                               if (vbright_ratio > 0.30) {
-                                  if (shadow_ratio > 0.40) {
+                                  if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
                                     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                                   } else {
                                     layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
@@ -613,7 +613,7 @@ if (app.documents.length > 0) {
                 }
 
                 // Get resolution (PPI) of raw file to determine real size
-                app.open(new File(thePath + "/title/" + found_title_filename));
+                app.open(new File(thePath + "/box/" + found_title_filename));
                 var raw_res = app.activeDocument.resolution ;
                 app.activeDocument.close();
 
