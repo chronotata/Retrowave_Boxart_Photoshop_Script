@@ -47,71 +47,72 @@ if (app.documents.length > 0) {
 
     // Check if all layers are found
     if (layer_title_perm && layer_ss_perm) {
-        // Select Files for 'title' Smart Object
-        // var folder1 = Folder.selectDialog("Select folder for the 'title' smart object images");
-        var folder_title = Folder(thePath + "/title");
-        var folder_ss = Folder(thePath + "/screenshot");
-        var folder_box = Folder(thePath + "/box");
 
-        // Get all the file names from both folders
-        var arr_title = [];
-        var arr_ss = [];
-        var arr_box = [];
+        var folder_title_root = Folder(thePath + "/title");
+        var folder_ss_root = Folder(thePath + "/screenshot");
+        var folder_box_root = Folder(thePath + "/box");
 
-        if (folder_title) {
-            var files_title = folder_title.getFiles(/\.(psd|tif|jpg|png)$/i);
+        // Find all the subfolders in each of the title, screenshot and box folders
+        var arr_title_subfolders = [];
+        var arr_ss_subfolders = [];
+        var arr_box_subfolders = [];
 
-            for (var i = 0; i < files_title.length; i++) {
-                raw_title_name = files_title[i].name.toString();
-                base_title_name = raw_title_name.match(/(.*)\.[^\.]+$/)[1];
-                arr_title.push(base_title_name);
-            };
+        if (folder_title_root) {
+            // Get all subfolders
+            arr_title_subfolders = FindAllFolders(folder_title_root, arr_title_subfolders)
+
+            // Remove the full path
+            var arr_title_subfolders_end = [];
+            for(var i = 0; i < arr_title_subfolders.length; i++) {
+              last_str = arr_title_subfolders[i].toString();
+              arr_title_subfolders_end.push(last_str.replace(/\/$/, "").split("/").pop());
+            }
         }
 
-        if (folder_ss) {
-            var files_ss = folder_ss.getFiles(/\.(psd|tif|jpg|png)$/i);
+        if (folder_ss_root) {
+            // Get all subfolders
+            arr_ss_subfolders = FindAllFolders(folder_ss_root, arr_ss_subfolders)
 
-            for (var i = 0; i < files_ss.length; i++) {
-                raw_ss_name = files_ss[i].name.toString();
-                base_ss_name = raw_ss_name.match(/(.*)\.[^\.]+$/)[1];
-                arr_ss.push(base_ss_name);
-            };
+            // Remove the full path
+            var arr_ss_subfolders_end = [];
+            for(var i = 0; i < arr_ss_subfolders.length; i++) {
+              last_str = arr_ss_subfolders[i].toString();
+              arr_ss_subfolders_end.push(last_str.replace(/\/$/, "").split("/").pop());
+            }
         }
 
         // Merge the arrays and drop duplicates
-        var arr_combined = arr_title.concat(arr_ss);
+        var arr_systems_combined = arr_title_subfolders_end.concat(arr_ss_subfolders_end);
 
-        if (folder_box) {
-            var files_box = folder_box.getFiles(/\.(psd|tif|jpg|png)$/i);
+        if (folder_box_root) {
+            // Get all subfolders
+            arr_box_subfolders = FindAllFolders(folder_box_root, arr_box_subfolders)
 
-            for (var i = 0; i < files_box.length; i++) {
-                raw_box_name = files_box[i].name.toString();
-                base_box_name = raw_box_name.match(/(.*)\.[^\.]+$/)[1];
-                arr_box.push(base_box_name);
-            };
+            // Remove the full path
+            var arr_box_subfolders_end = [];
+            for(var i = 0; i < arr_box_subfolders.length; i++) {
+              last_str = arr_box_subfolders[i].toString();
+              arr_box_subfolders_end.push(last_str.replace(/\/$/, "").split("/").pop());
+            }
 
-            arr_combined = arr_combined.concat(arr_box);
+            arr_systems_combined = arr_systems_combined.concat(arr_box_subfolders_end);
         }
 
-
-        // Need to write a special iterative function to drop duplicates
-        // because Photoshop's JS "in" comparison doesn't work with special
-        // characters which the scaped images files will have
-        // Removing special characters not an option since that will break
-        // being able to look up image by name
-        var arr_unique = [];
+        // Get the unique systems
+        // TODO: Change this into a function
+        var arr_systems_unique = [''];
 
         // Iterate through each element in combined array
-        for (var i = 0; i < arr_combined.length; i++) {
+        for (var i = 0; i < arr_systems_combined.length; i++) {
 
           // Check the element in combined array if it is already inside unique array
           var find_counter = 0;
 
           // Loop through each element already in the unique array
-          for (var j = 0; j < arr_unique.length; j++) {
+          for (var j = 0; j < arr_systems_unique.length; j++) {
 
             // If a repeat values is found, iterate find counter and break loop
-            if (arr_combined[i] == arr_unique[j]) {
+            if (arr_systems_combined[i] == arr_systems_unique[j]) {
               find_counter = find_counter + 1;
               break;
             }
@@ -120,529 +121,618 @@ if (app.documents.length > 0) {
           // If the loop is complete without find_counter being iterated,
           // add the new unique element to unique array
           if (find_counter == 0) {
-            arr_unique.push(arr_combined[i])
+            arr_systems_unique.push(arr_systems_combined[i])
           }
         }
 
-        // Iterate through each detected game
-        for (var i = 0; i < arr_unique.length; i++) {
-            // alert(files_title[i].name);
-            // alert(arr_unique[i]);
-            var searchString = arr_unique[i];
-            // Add escape character before special characters in file name
-            searchString = searchString.replace(/([<>*()?+$])/g, "\\$1");
-            // searchString = searchString.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
-            // searchString = '^'+searchString+'$';
-            // alert(searchString);
-            var searchRegExp = new RegExp(searchString);
+        // Loop through root folders and system
+        for (var s = 0; s < arr_systems_unique.length; s++) {
 
-            // If there are layers in the title and screenshot sets, delete them first
-            try {
-              layerSet_title.layers[0].remove();
-            } catch (e) {
-              null;
-            }
-            try {
-              layerSet_titleBlack.layers[0].remove();
-            } catch (e) {
-              null;
-            }
-            try {
-              layerSet_titleWhite.layers[0].remove();
-            } catch (e) {
-              null;
-            }
-            try {
-              layerSet_ss.layers[0].remove();
-            } catch (e) {
-              null;
-            }
-            try {
-              layerSet_box.layers[0].remove();
-            } catch (e) {
-              null;
-            }
-
-            // If there are layers in the back panel layers, move them back to the hidden folder
-            try {
-              while (layerSet_backtitle.layers[0]) {
-                // layerSet_backtitle.layers[0].remove()
-                layerSet_backtitle.layers[0].move(layerSet_hidden, ElementPlacement.PLACEATEND);
+              if (arr_systems_unique[s] == '') {
+                var slash_sys = '';
+              } else {
+                var slash_sys = '/' + arr_systems_unique[s];
               }
-            } catch (e) {
-              null;
-            }
-            try {
-              while (layerSet_boxback.layers[0]) {
-                // layerSet_boxback.layers[0].remove()
-                layerSet_boxback.layers[0].move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+              // Select Files for 'title' Smart Object
+              // var folder1 = Folder.selectDialog("Select folder for the 'title' smart object images");
+              var folder_title = Folder(thePath + "/title" + slash_sys);
+              var folder_ss = Folder(thePath + "/screenshot" + slash_sys);
+              var folder_box = Folder(thePath + "/box" + slash_sys);
+
+              // Get all the file names from both folders
+              var arr_title = [];
+              var arr_ss = [];
+              var arr_box = [];
+
+              if (folder_title) {
+                  var files_title = folder_title.getFiles(/\.(psd|tif|jpg|png)$/i);
+
+                  for (var i = 0; i < files_title.length; i++) {
+                      raw_title_name = files_title[i].name.toString();
+                      base_title_name = raw_title_name.match(/(.*)\.[^\.]+$/)[1];
+                      arr_title.push(base_title_name);
+                  };
               }
-            } catch (e) {
-              null;
-            }
 
-            // If the title image for the game exists, process the title image
-            // otherwise, leave it blank
-            if (folder_title.getFiles(searchRegExp).length > 0) {
-                // Put raw title image into new layer
-                myDocument.activeLayer = layer0;
-                addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
-                myDocument.activeLayer.name = "raw_title";
+              if (folder_ss) {
+                  var files_ss = folder_ss.getFiles(/\.(psd|tif|jpg|png)$/i);
 
-                // Move raw box image to the layer set
-                myDocument.layers["raw_title"].move(layerSet_title, ElementPlacement.PLACEATEND);
+                  for (var i = 0; i < files_ss.length; i++) {
+                      raw_ss_name = files_ss[i].name.toString();
+                      base_ss_name = raw_ss_name.match(/(.*)\.[^\.]+$/)[1];
+                      arr_ss.push(base_ss_name);
+                  };
+              }
 
-                // Loop through each common image extension to find image
-                for (var j = 0; j < check_file_extensions.length; j++) {
-                  if (File(thePath + "/title/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                    var found_title_filename = arr_unique[i] + check_file_extensions[j];
+              // Merge the arrays and drop duplicates
+              var arr_combined = arr_title.concat(arr_ss);
+
+              if (folder_box) {
+                  var files_box = folder_box.getFiles(/\.(psd|tif|jpg|png)$/i);
+
+                  for (var i = 0; i < files_box.length; i++) {
+                      raw_box_name = files_box[i].name.toString();
+                      base_box_name = raw_box_name.match(/(.*)\.[^\.]+$/)[1];
+                      arr_box.push(base_box_name);
+                  };
+              }
+
+              arr_combined = arr_combined.concat(arr_box);
+
+              // Need to write a special iterative function to drop duplicates
+              // because Photoshop's JS "in" comparison doesn't work with special
+              // characters which the scaped images files will have
+              // Removing special characters not an option since that will break
+              // being able to look up image by name
+              var arr_unique = [];
+
+              // Iterate through each element in combined array
+              for (var i = 0; i < arr_combined.length; i++) {
+
+                // Check the element in combined array if it is already inside unique array
+                var find_counter = 0;
+
+                // Loop through each element already in the unique array
+                for (var j = 0; j < arr_unique.length; j++) {
+
+                  // If a repeat values is found, iterate find counter and break loop
+                  if (arr_combined[i] == arr_unique[j]) {
+                    find_counter = find_counter + 1;
+                    break;
                   }
                 }
 
-                // Get resolution (PPI) of raw file to determine real size
-                app.open(new File(thePath + "/title/" + found_title_filename));
-                var raw_res = app.activeDocument.resolution ;
-                app.activeDocument.close();
+                // If the loop is complete without find_counter being iterated,
+                // add the new unique element to unique array
+                if (find_counter == 0) {
+                  arr_unique.push(arr_combined[i])
+                }
+            }
 
-                // Add image and resize based on the reference placeholder
-                replaceContentWithResize("raw_title", layerSet_title, "Calque 5", File(thePath + "/title/" + found_title_filename), "constrain", "", raw_res);
+            // Iterate through each detected game
+            for (var i = 0; i < arr_unique.length; i++) {
+                // alert(files_title[i].name);
+                // alert(arr_unique[i]);
+                var searchString = arr_unique[i];
+                // Add escape character before special characters in file name
+                searchString = searchString.replace(/([<>*()?+$])/g, "\\$1");
+                // searchString = searchString.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
+                // searchString = '^'+searchString+'$';
+                // alert(searchString);
+                var searchRegExp = new RegExp(searchString);
 
-                // If the temp visible layer exists
-                if (layerSet_tempVisible) {
-                  // Temporarily move the raw_screenshot layer to the temp visible later to calculate the highlight border pixels
-                  layerSet_title.layers[0].move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+                // If there are layers in the title and screenshot sets, delete them first
+                try {
+                  layerSet_title.layers[0].remove();
+                } catch (e) {
+                  null;
+                }
+                try {
+                  layerSet_titleBlack.layers[0].remove();
+                } catch (e) {
+                  null;
+                }
+                try {
+                  layerSet_titleWhite.layers[0].remove();
+                } catch (e) {
+                  null;
+                }
+                try {
+                  layerSet_ss.layers[0].remove();
+                } catch (e) {
+                  null;
+                }
+                try {
+                  layerSet_box.layers[0].remove();
+                } catch (e) {
+                  null;
+                }
 
-                  // // Rasterise layer
-                  // layerSet_tempVisible.layers[0].rasterize(RasterizeType.ENTIRELAYER);
-
-                  // Select opaque areas only
-                  selectNonTransparent()
-
-                  // Select inverse
-                  var idInvs = charIDToTypeID( "Invs" );
-                  executeAction( idInvs, undefined, DialogModes.NO);
-
-                  // Expand selection by 2 pixels - to get the borders of the title
-                  app.activeDocument.selection.expand(new UnitValue (2, "px"));
-
-                  // Select only the visible border
-                  colorRangeMidtones(0, 0, 255, 0);
-
-                  // Get number of selected pixels
-                  var visible_border_pxls = getNumSelectedPxls();
-
-                  // Move the white back behind the title (for correctly getting the colours of semi-transparent logo edges)
-                  layer_whiteBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
-
-                  // Select only highlight shade pixels (range of 100 to 255)
-                  colorRangeMidtones(0, 200, 255, 0);
-
-                  // Get number of selected highlight pixels
-                  var highlight_border_pxls = getNumSelectedPxls();
-
-                  // Ratio highlight vs all pixels
-                  if (highlight_border_pxls <= visible_border_pxls) {
-                    var highlight_ratio = highlight_border_pxls / visible_border_pxls;
-                  } else {
-                    var highlight_ratio = 0.0;
+                // If there are layers in the back panel layers, move them back to the hidden folder
+                try {
+                  while (layerSet_backtitle.layers[0]) {
+                    // layerSet_backtitle.layers[0].remove()
+                    layerSet_backtitle.layers[0].move(layerSet_hidden, ElementPlacement.PLACEATEND);
                   }
-
-                  // Move white layer back to Hidden
-                  // layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
-
-                  // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
-                  // layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
-
-                  // Select only very bright shade pixels (range of 100 to 255)
-                  colorRangeMidtones(0, 230, 255, 0);
-
-                  // Get number of selected highlight pixels
-                  var vbright_border_pxls = getNumSelectedPxls();
-
-                  // Ratio v. bright vs all pixels
-                  if (vbright_border_pxls <= visible_border_pxls) {
-                    var vbright_ratio = vbright_border_pxls / visible_border_pxls;
-                  } else {
-                    var vbright_ratio = 0.0;
+                } catch (e) {
+                  null;
+                }
+                try {
+                  while (layerSet_boxback.layers[0]) {
+                    // layerSet_boxback.layers[0].remove()
+                    layerSet_boxback.layers[0].move(layerSet_hidden, ElementPlacement.PLACEATEND);
                   }
+                } catch (e) {
+                  null;
+                }
 
-                  // Move black layer back to Hidden
-                  // layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+                // If the title image for the game exists, process the title image
+                // otherwise, leave it blank
+                if (folder_title.getFiles(searchRegExp).length > 0) {
+                    // Put raw title image into new layer
+                    myDocument.activeLayer = layer0;
+                    addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
+                    myDocument.activeLayer.name = "raw_title";
 
-                  // Move white layer back to Hidden
-                  layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+                    // Move raw box image to the layer set
+                    myDocument.layers["raw_title"].move(layerSet_title, ElementPlacement.PLACEATEND);
 
-                  // Select opaque areas only
-                  selectNonTransparent()
+                    // Loop through each common image extension to find image
+                    for (var j = 0; j < check_file_extensions.length; j++) {
+                      if (File(thePath + "/title" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                        var found_title_filename = arr_unique[i] + check_file_extensions[j];
+                      }
+                    }
 
-                  // Select inverse
-                  var idInvs = charIDToTypeID( "Invs" );
-                  executeAction( idInvs, undefined, DialogModes.NO);
+                    // Get resolution (PPI) of raw file to determine real size
+                    app.open(new File(thePath + "/title" + slash_sys + "/" + found_title_filename));
+                    var raw_res = app.activeDocument.resolution ;
+                    app.activeDocument.close();
 
-                  // Expand selection by 2 pixels - to get the borders of the title
-                  app.activeDocument.selection.expand(new UnitValue (2, "px"));
+                    // Add image and resize based on the reference placeholder
+                    replaceContentWithResize("raw_title", layerSet_title, "Calque 5", File(thePath + "/title" + slash_sys + "/" + found_title_filename), "constrain", "", raw_res);
 
-                  // Select only the visible border
-                  colorRangeMidtones(0, 0, 255, 0);
+                    // If the temp visible layer exists
+                    if (layerSet_tempVisible) {
+                      // Temporarily move the raw_screenshot layer to the temp visible later to calculate the highlight border pixels
+                      layerSet_title.layers[0].move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
 
-                  // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
-                  layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+                      // // Rasterise layer
+                      // layerSet_tempVisible.layers[0].rasterize(RasterizeType.ENTIRELAYER);
 
-                  // Select only shadow shade pixels (range of 0 to 80)
-                  // colorRangeMidtones(0, 0, 30, 0);
-                  colorRangeMidtones(0, 0, 80, 0);
+                      // Select opaque areas only
+                      selectNonTransparent()
 
-                  // Get number of selected shadow pixels
-                  var shadow_border_pxls = getNumSelectedPxls();
+                      // Select inverse
+                      var idInvs = charIDToTypeID( "Invs" );
+                      executeAction( idInvs, undefined, DialogModes.NO);
 
-                  // Ratio shadow vs all pixels
-                  if (shadow_border_pxls <= visible_border_pxls) {
-                    var shadow_ratio = shadow_border_pxls / visible_border_pxls;
-                  } else {
-                    var shadow_ratio = 0.0;
-                  }
+                      // Expand selection by 2 pixels - to get the borders of the title
+                      app.activeDocument.selection.expand(new UnitValue (2, "px"));
 
-                  // Move black layer back to Hidden
-                  layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+                      // Select only the visible border
+                      colorRangeMidtones(0, 0, 255, 0);
 
-                  // Move the white back behind the title (for correctly getting the colours of semi-transparent logo edges)
-                  layer_whiteBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+                      // Get number of selected pixels
+                      var visible_border_pxls = getNumSelectedPxls();
 
-                  // Select only very dark shade pixels (range of 100 to 255)
-                  // colorRangeMidtones(0, 0, 10, 0);
-                  colorRangeMidtones(0, 0, 35, 0);
+                      // Move the white back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                      layer_whiteBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
 
-                  // Move white layer back to Hidden
-                  layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+                      // Select only highlight shade pixels (range of 100 to 255)
+                      colorRangeMidtones(0, 200, 255, 0);
 
-                  // Get number of selected highlight pixels
-                  var vdark_border_pxls = getNumSelectedPxls();
+                      // Get number of selected highlight pixels
+                      var highlight_border_pxls = getNumSelectedPxls();
 
-                  // Ratio v. bright vs all pixels
-                  if (vdark_border_pxls <= visible_border_pxls) {
-                    var vdark_ratio = vdark_border_pxls / visible_border_pxls;
-                  } else {
-                    var vdark_ratio = 0.0;
-                  }
-
-                  // Select opaque areas only
-                  selectNonTransparent()
-
-                  // Select inverse
-                  var idInvs = charIDToTypeID( "Invs" );
-                  executeAction( idInvs, undefined, DialogModes.NO);
-
-                  // Expand selection by 2 pixels - to get the borders of the title
-                  app.activeDocument.selection.expand(new UnitValue (2, "px"));
-
-                  // Select only the visible border
-                  colorRangeMidtones(0, 0, 255, 0);
-
-                  // Select yellow colour range areas
-                  colorRangeYellows(0);
-
-                  // Get number of selected shadow pixels
-                  var yellow_border_pxls = getNumSelectedPxls();
-
-                  // Ratio v. bright vs all pixels
-                  if (yellow_border_pxls <= visible_border_pxls) {
-                    var yellow_ratio = yellow_border_pxls / visible_border_pxls;
-                  } else {
-                    var yellow_ratio = 0.0;
-                  }
-
-
-                  // alert("Highlight %:" + highlight_ratio + "    Shadow %:" + shadow_ratio + "    V. Bright %:" + vbright_ratio + "    V. Dark %:" + vdark_ratio + "    Yellow %:" + yellow_ratio);
-
-                  // If the ratio is lower than 25%, move the image back to the title layer set with white border
-                  // Otherwise, send to set with black border
-                  // if (highlight_ratio > 0.70) {
-                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                  // } else {
-                  //     if (vbright_ratio > 0.10) {
-                  //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //     } else {
-                  //         if (vdark_ratio < Math.min(vbright_ratio, 0.10)) {
-                  //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //         } else {
-                  //           if (highlight_ratio < 0.40) {
-                  //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //           } else {
-                  //               if (shadow_ratio > 0.30) {
-                  //                 layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //               } else {
-                  //                 layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //               }
-                  //           }
-                  //         }
-                  //     }
-                  // }
-
-                  // if (highlight_ratio > 0.70) {
-                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                  // } else {
-                  //     if (vbright_ratio > 0.10) {
-                  //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //     } else {
-                  //         if (highlight_ratio < 0.40) {
-                  //             if (vdark_ratio >= vbright_ratio) {
-                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //             } else {
-                  //                 if (vbright_ratio > 0.05) {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //                 } else {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //                 }
-                  //             }
-                  //         } else {
-                  //           if (shadow_ratio > 0.30) {
-                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //             } else {
-                  //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //             }
-                  //         }
-                  //     }
-                  // }
-
-                  // if (highlight_ratio > 0.70) {
-                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                  // } else {
-                  //     if (shadow_ratio > 0.70) {
-                  //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //     } else {
-                  //         if (vbright_ratio > 0.10) {
-                  //             if (vdark_ratio >= vbright_ratio) {
-                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //             } else {
-                  //                 if (vdark_ratio > 0.10) {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //                 } else {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //                 }
-                  //             }
-                  //         } else {
-                  //             if (highlight_ratio < 0.40) {
-                  //                 if (vdark_ratio >= vbright_ratio) {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //                 } else {
-                  //                     if (vbright_ratio > 0.05) {
-                  //                       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //                     } else {
-                  //                       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //                     }
-                  //                 }
-                  //             } else {
-                  //               if (shadow_ratio > 0.30) {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //                 } else {
-                  //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //                 }
-                  //             }
-                  //         }
-                  //     }
-                  // }
-
-                  // if (highlight_ratio > 0.65) {
-                  //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                  // } else {
-                  //   if ((highlight_ratio >= shadow_ratio) && (vdark_ratio < 0.01)) {
-                  //     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //   } else {
-                  //     if (shadow_ratio > 0.60) {
-                  //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //     } else {
-                  //       if (vbright_ratio > 0.50) {
-                  //         layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                  //       } else {
-                  //         if ((vbright_ratio > 0.25) && (vdark_ratio < 0.10)) {
-                  //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //         } else {
-                  //           if ((vbright_ratio > 0.25) && (vdark_ratio >= 0.10)) {
-                  //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //           } else {
-                  //             if (shadow_ratio > 0.50) {
-                  //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                  //             } else {
-                  //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  //             }
-                  //           }
-                  //         }
-                  //       }
-                  //     }
-                  //   }
-                  // }
-
-                  if (yellow_ratio > 0.70) {
-                    layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                  } else {
-                    if ((yellow_ratio > 0.40) && (highlight_ratio > 0.60)) {
-                        if (vdark_ratio / shadow_ratio < 0.20) {
-                          layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                        } else {
-                          layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                        }
-                    } else {
-                      if (highlight_ratio > 0.65) {
-                          if (highlight_ratio > shadow_ratio) {
-                            layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                          } else {
-                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                          }
+                      // Ratio highlight vs all pixels
+                      if (highlight_border_pxls <= visible_border_pxls) {
+                        var highlight_ratio = highlight_border_pxls / visible_border_pxls;
                       } else {
-                        if ((shadow_ratio > 0.70) || (vdark_ratio > 0.20)) {
-                          layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                        var highlight_ratio = 0.0;
+                      }
+
+                      // Move white layer back to Hidden
+                      // layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                      // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                      // layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                      // Select only very bright shade pixels (range of 100 to 255)
+                      colorRangeMidtones(0, 230, 255, 0);
+
+                      // Get number of selected highlight pixels
+                      var vbright_border_pxls = getNumSelectedPxls();
+
+                      // Ratio v. bright vs all pixels
+                      if (vbright_border_pxls <= visible_border_pxls) {
+                        var vbright_ratio = vbright_border_pxls / visible_border_pxls;
+                      } else {
+                        var vbright_ratio = 0.0;
+                      }
+
+                      // Move black layer back to Hidden
+                      // layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                      // Move white layer back to Hidden
+                      layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                      // Select opaque areas only
+                      selectNonTransparent()
+
+                      // Select inverse
+                      var idInvs = charIDToTypeID( "Invs" );
+                      executeAction( idInvs, undefined, DialogModes.NO);
+
+                      // Expand selection by 2 pixels - to get the borders of the title
+                      app.activeDocument.selection.expand(new UnitValue (2, "px"));
+
+                      // Select only the visible border
+                      colorRangeMidtones(0, 0, 255, 0);
+
+                      // Move the black back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                      layer_blackBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                      // Select only shadow shade pixels (range of 0 to 80)
+                      // colorRangeMidtones(0, 0, 30, 0);
+                      colorRangeMidtones(0, 0, 80, 0);
+
+                      // Get number of selected shadow pixels
+                      var shadow_border_pxls = getNumSelectedPxls();
+
+                      // Ratio shadow vs all pixels
+                      if (shadow_border_pxls <= visible_border_pxls) {
+                        var shadow_ratio = shadow_border_pxls / visible_border_pxls;
+                      } else {
+                        var shadow_ratio = 0.0;
+                      }
+
+                      // Move black layer back to Hidden
+                      layer_blackBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                      // Move the white back behind the title (for correctly getting the colours of semi-transparent logo edges)
+                      layer_whiteBack.move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
+
+                      // Select only very dark shade pixels (range of 100 to 255)
+                      // colorRangeMidtones(0, 0, 10, 0);
+                      colorRangeMidtones(0, 0, 35, 0);
+
+                      // Move white layer back to Hidden
+                      layer_whiteBack.move(layerSet_hidden, ElementPlacement.PLACEATEND);
+
+                      // Get number of selected highlight pixels
+                      var vdark_border_pxls = getNumSelectedPxls();
+
+                      // Ratio v. bright vs all pixels
+                      if (vdark_border_pxls <= visible_border_pxls) {
+                        var vdark_ratio = vdark_border_pxls / visible_border_pxls;
+                      } else {
+                        var vdark_ratio = 0.0;
+                      }
+
+                      // Select opaque areas only
+                      selectNonTransparent()
+
+                      // Select inverse
+                      var idInvs = charIDToTypeID( "Invs" );
+                      executeAction( idInvs, undefined, DialogModes.NO);
+
+                      // Expand selection by 2 pixels - to get the borders of the title
+                      app.activeDocument.selection.expand(new UnitValue (2, "px"));
+
+                      // Select only the visible border
+                      colorRangeMidtones(0, 0, 255, 0);
+
+                      // Select yellow colour range areas
+                      colorRangeYellows(0);
+
+                      // Get number of selected shadow pixels
+                      var yellow_border_pxls = getNumSelectedPxls();
+
+                      // Ratio v. bright vs all pixels
+                      if (yellow_border_pxls <= visible_border_pxls) {
+                        var yellow_ratio = yellow_border_pxls / visible_border_pxls;
+                      } else {
+                        var yellow_ratio = 0.0;
+                      }
+
+
+                      // alert("Highlight %:" + highlight_ratio + "    Shadow %:" + shadow_ratio + "    V. Bright %:" + vbright_ratio + "    V. Dark %:" + vdark_ratio + "    Yellow %:" + yellow_ratio);
+
+                      // If the ratio is lower than 25%, move the image back to the title layer set with white border
+                      // Otherwise, send to set with black border
+                      // if (highlight_ratio > 0.70) {
+                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                      // } else {
+                      //     if (vbright_ratio > 0.10) {
+                      //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //     } else {
+                      //         if (vdark_ratio < Math.min(vbright_ratio, 0.10)) {
+                      //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //         } else {
+                      //           if (highlight_ratio < 0.40) {
+                      //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //           } else {
+                      //               if (shadow_ratio > 0.30) {
+                      //                 layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //               } else {
+                      //                 layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //               }
+                      //           }
+                      //         }
+                      //     }
+                      // }
+
+                      // if (highlight_ratio > 0.70) {
+                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                      // } else {
+                      //     if (vbright_ratio > 0.10) {
+                      //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //     } else {
+                      //         if (highlight_ratio < 0.40) {
+                      //             if (vdark_ratio >= vbright_ratio) {
+                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //             } else {
+                      //                 if (vbright_ratio > 0.05) {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //                 } else {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //                 }
+                      //             }
+                      //         } else {
+                      //           if (shadow_ratio > 0.30) {
+                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //             } else {
+                      //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //             }
+                      //         }
+                      //     }
+                      // }
+
+                      // if (highlight_ratio > 0.70) {
+                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                      // } else {
+                      //     if (shadow_ratio > 0.70) {
+                      //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //     } else {
+                      //         if (vbright_ratio > 0.10) {
+                      //             if (vdark_ratio >= vbright_ratio) {
+                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //             } else {
+                      //                 if (vdark_ratio > 0.10) {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //                 } else {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //                 }
+                      //             }
+                      //         } else {
+                      //             if (highlight_ratio < 0.40) {
+                      //                 if (vdark_ratio >= vbright_ratio) {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //                 } else {
+                      //                     if (vbright_ratio > 0.05) {
+                      //                       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //                     } else {
+                      //                       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //                     }
+                      //                 }
+                      //             } else {
+                      //               if (shadow_ratio > 0.30) {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //                 } else {
+                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //                 }
+                      //             }
+                      //         }
+                      //     }
+                      // }
+
+                      // if (highlight_ratio > 0.65) {
+                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                      // } else {
+                      //   if ((highlight_ratio >= shadow_ratio) && (vdark_ratio < 0.01)) {
+                      //     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //   } else {
+                      //     if (shadow_ratio > 0.60) {
+                      //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //     } else {
+                      //       if (vbright_ratio > 0.50) {
+                      //         layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                      //       } else {
+                      //         if ((vbright_ratio > 0.25) && (vdark_ratio < 0.10)) {
+                      //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //         } else {
+                      //           if ((vbright_ratio > 0.25) && (vdark_ratio >= 0.10)) {
+                      //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //           } else {
+                      //             if (shadow_ratio > 0.50) {
+                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                      //             } else {
+                      //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      //             }
+                      //           }
+                      //         }
+                      //       }
+                      //     }
+                      //   }
+                      // }
+
+                      if (yellow_ratio > 0.70) {
+                        layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                      } else {
+                        if ((yellow_ratio > 0.40) && (highlight_ratio > 0.60)) {
+                            if (vdark_ratio / shadow_ratio < 0.20) {
+                              layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                            } else {
+                              layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                            }
                         } else {
-                          if (shadow_ratio > 0.60) {
-                              if (vbright_ratio / highlight_ratio < 0.75) {
-                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                              } else {
+                          if (highlight_ratio > 0.65) {
+                              if (highlight_ratio > shadow_ratio) {
                                 layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                              } else {
+                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                               }
                           } else {
-                            if (vbright_ratio > 0.40) {
-                              layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                            if ((shadow_ratio > 0.70) || (vdark_ratio > 0.20)) {
+                              layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                             } else {
-                              if (vbright_ratio > 0.30) {
-                                  if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
+                              if (shadow_ratio > 0.60) {
+                                  if (vbright_ratio / highlight_ratio < 0.75) {
                                     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                                   } else {
-                                    layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                    layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                                   }
                               } else {
-                                if (vbright_ratio > 0.25) {
-                                    if (vdark_ratio < 0.10) {
-                                      layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                    } else {
-                                      layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                    }
+                                if (vbright_ratio > 0.40) {
+                                  layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                                 } else {
-                                  if (shadow_ratio > highlight_ratio) {
-                                      if (shadow_ratio > 0.50) {
-                                          if (vbright_ratio / highlight_ratio > 0.50) {
-                                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                          } else {
-                                            layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                          }
+                                  if (vbright_ratio > 0.30) {
+                                      if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
+                                        layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                                       } else {
-                                          if (vbright_ratio / highlight_ratio > 0.60) {
-                                            layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                          } else {
-                                            layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                          }
+                                        layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
                                       }
-                                   } else {
-                                     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                   }
+                                  } else {
+                                    if (vbright_ratio > 0.25) {
+                                        if (vdark_ratio < 0.10) {
+                                          layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                        } else {
+                                          layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                        }
+                                    } else {
+                                      if (shadow_ratio > highlight_ratio) {
+                                          if (shadow_ratio > 0.50) {
+                                              if (vbright_ratio > 0.20) {
+                                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                              } else {
+                                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                              }
+                                          } else {
+                                              if (vbright_ratio / highlight_ratio > 0.60) {
+                                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                              } else {
+                                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                              }
+                                          }
+                                       } else {
+                                         layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                       }
+                                    }
+                                  }
                                 }
                               }
                             }
                           }
                         }
                       }
+
+
                     }
-                  }
 
-
-                }
-
-                // Duplicate the back title layer to the visible set
-                layer_backtitle.move(layerSet_backtitle, ElementPlacement.PLACEATEND);
-            } else {
-              try {
-                layerSet_title.layers[0].remove();
-              } catch (e) {
-                  // Do nothing
-              }
-            }
-
-            // If the screenshot image for the game exists, process the screenshot image
-            // otherwise, leave it blank
-            if (folder_ss.getFiles(searchRegExp).length > 0) {
-                // Put raw screenshot image into new layer
-                myDocument.activeLayer = layer0;
-                addFileNewLayer(folder_ss.getFiles(searchRegExp)[0]);
-                myDocument.activeLayer.name = "raw_screenshot";
-
-                // Move raw box image to the layer set
-                myDocument.layers["raw_screenshot"].move(layerSet_ss, ElementPlacement.PLACEATEND);
-
-                // Loop through each common image extension to find image
-                for (var j = 0; j < check_file_extensions.length; j++) {
-                  if (File(thePath + "/screenshot/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                    var found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                    // Duplicate the back title layer to the visible set
+                    layer_backtitle.move(layerSet_backtitle, ElementPlacement.PLACEATEND);
+                } else {
+                  try {
+                    layerSet_title.layers[0].remove();
+                  } catch (e) {
+                      // Do nothing
                   }
                 }
 
-                // Get resolution (PPI) of raw file to determine real size
-                app.open(new File(thePath + "/screenshot/" + found_ss_filename));
-                var raw_res = app.activeDocument.resolution ;
-                app.activeDocument.close();
+                // If the screenshot image for the game exists, process the screenshot image
+                // otherwise, leave it blank
+                if (folder_ss.getFiles(searchRegExp).length > 0) {
+                    // Put raw screenshot image into new layer
+                    myDocument.activeLayer = layer0;
+                    addFileNewLayer(folder_ss.getFiles(searchRegExp)[0]);
+                    myDocument.activeLayer.name = "raw_screenshot";
 
-                // Add image and resize based on the reference placeholder
-                replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6", File(thePath + "/screenshot/" + found_ss_filename), "exceed", "", raw_res);
+                    // Move raw box image to the layer set
+                    myDocument.layers["raw_screenshot"].move(layerSet_ss, ElementPlacement.PLACEATEND);
+
+                    // Loop through each common image extension to find image
+                    for (var j = 0; j < check_file_extensions.length; j++) {
+                      if (File(thePath + "/screenshot" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                        var found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                      }
+                    }
+
+                    // Get resolution (PPI) of raw file to determine real size
+                    app.open(new File(thePath + "/screenshot" + slash_sys + "/" + found_ss_filename));
+                    var raw_res = app.activeDocument.resolution ;
+                    app.activeDocument.close();
+
+                    // Add image and resize based on the reference placeholder
+                    replaceContentWithResize("raw_screenshot", layerSet_ss, "Calque 6", File(thePath + "/screenshot" + slash_sys + "/" + found_ss_filename), "exceed", "", raw_res);
 
 
-                // // Delete the raw screenshot layer
-                // myDocument.layers["raw_screenshot"].remove();
-            } else {
-              try {
-                layerSet_ss.layers[0].remove();
-              } catch (e) {
-                  // Do nothing
-              }
-            }
-
-
-
-            // If the box image for the game exists, process the box image
-            // otherwise, leave it blank
-            if ((folder_box.getFiles(searchRegExp).length > 0) && (layer_box_perm)) {
-                // Put raw box image into new layer
-                myDocument.activeLayer = layer0;
-                addFileNewLayer(folder_box.getFiles(searchRegExp)[0]);
-                myDocument.activeLayer.name = "raw_box";
-
-                // Move raw box image to the layer set
-                myDocument.layers["raw_box"].move(layerSet_box, ElementPlacement.PLACEATEND);
-
-                // Loop through each common image extension to find image
-                for (var j = 0; j < check_file_extensions.length; j++) {
-                  if (File(thePath + "/box/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                    var found_box_filename = arr_unique[i] + check_file_extensions[j];
+                    // // Delete the raw screenshot layer
+                    // myDocument.layers["raw_screenshot"].remove();
+                } else {
+                  try {
+                    layerSet_ss.layers[0].remove();
+                  } catch (e) {
+                      // Do nothing
                   }
                 }
 
-                // Get resolution (PPI) of raw file to determine real size
-                app.open(new File(thePath + "/box/" + found_title_filename));
-                var raw_res = app.activeDocument.resolution ;
-                app.activeDocument.close();
 
-                // Add image and resize based on the reference placeholder
-                // For boxart, anchor resize to centre right (rather than centre) of image
-                replaceContentWithResize("raw_box", layerSet_box, "Box placeholder", File(thePath + "/box/" + found_box_filename), "constrain", "CENTERRIGHT", raw_res);
 
-                // Duplicate the back title layer to the visible set
-                layer_boxback.move(layerSet_boxback, ElementPlacement.PLACEATEND);
-            } else {
-              try {
-                  layerSet_box.layers[0].remove();
-              } catch (e) {
-                  // Do nothing
-              }
+                // If the box image for the game exists, process the box image
+                // otherwise, leave it blank
+                if ((folder_box.getFiles(searchRegExp).length > 0) && (layer_box_perm)) {
+                    // Put raw box image into new layer
+                    myDocument.activeLayer = layer0;
+                    addFileNewLayer(folder_box.getFiles(searchRegExp)[0]);
+                    myDocument.activeLayer.name = "raw_box";
+
+                    // Move raw box image to the layer set
+                    myDocument.layers["raw_box"].move(layerSet_box, ElementPlacement.PLACEATEND);
+
+                    // Loop through each common image extension to find image
+                    for (var j = 0; j < check_file_extensions.length; j++) {
+                      if (File(thePath + "/box" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                        var found_box_filename = arr_unique[i] + check_file_extensions[j];
+                      }
+                    }
+
+                    // Get resolution (PPI) of raw file to determine real size
+                    app.open(new File(thePath + "/box" + slash_sys + "/" + found_box_filename));
+                    var raw_res = app.activeDocument.resolution ;
+                    app.activeDocument.close();
+
+                    // Add image and resize based on the reference placeholder
+                    // For boxart, anchor resize to centre right (rather than centre) of image
+                    replaceContentWithResize("raw_box", layerSet_box, "Box placeholder", File(thePath + "/box" + slash_sys + "/" + found_box_filename), "constrain", "CENTERRIGHT", raw_res);
+
+                    // Duplicate the back title layer to the visible set
+                    layer_boxback.move(layerSet_boxback, ElementPlacement.PLACEATEND);
+                } else {
+                  try {
+                      layerSet_box.layers[0].remove();
+                  } catch (e) {
+                      // Do nothing
+                  }
+                }
+
+                // var theNewName = files_title[i].name.match(/(.*)\.[^\.]+$/)[1];
+                // var theNewName = arr_unique[i].match(/(.*)\.[^\.]+$/)[1];
+                var theNewName = arr_unique[i]
+
+                var f = new Folder(thePath + "/" + "outputs" + slash_sys);
+                if ( ! f.exists ) {
+                    f.create()
+                }
+
+                // Save as PNG
+                myDocument.saveAs(new File(thePath + "/" + "outputs" + slash_sys + "/" + theNewName + ".png"), pngOptions, true);
             }
 
-            // var theNewName = files_title[i].name.match(/(.*)\.[^\.]+$/)[1];
-            // var theNewName = arr_unique[i].match(/(.*)\.[^\.]+$/)[1];
-            var theNewName = arr_unique[i]
-
-            var f = new Folder(thePath + "/" + "outputs");
-            if ( ! f.exists ) {
-                f.create()
-            }
-
-            // Save as PNG
-            myDocument.saveAs(new File(thePath + "/" + "outputs/" + theNewName + ".png"), pngOptions, true);
         }
+
+
     } else {
         alert("One or more of the 'title' or 'screenshot' smart objects were not found in the document.");
     }
@@ -938,3 +1028,22 @@ function colorRangeYellows(colorModel) {
 	descriptor.putInteger( s2t( "colorModel" ), colorModel );
 	executeAction( s2t( "colorRange" ), descriptor, DialogModes.NO );
 }
+
+
+function FindAllFolders(srcFolderStr, destArray) {
+
+    var fileFolderArray = Folder( srcFolderStr ).getFiles();
+
+    for ( var i = 0; i < fileFolderArray.length; i++ ) {
+
+        var fileFoldObj = fileFolderArray[i];
+
+        if ( fileFoldObj instanceof File ) {
+        } else {
+         destArray.push( Folder(fileFoldObj) );
+         FindAllFolders( fileFoldObj.toString(), destArray );
+        }
+    }
+
+    return destArray;
+};
