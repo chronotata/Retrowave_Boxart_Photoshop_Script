@@ -269,21 +269,32 @@ if (app.documents.length > 0) {
 
                 // If the title image for the game exists, process the title image
                 // otherwise, leave it blank
-                if (folder_title.getFiles(searchRegExp).length > 0) {
+
+                // Loop through each common image extension to find image
+                var found_title_filename = "null";
+
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/title" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    var found_title_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
+
+                // if (folder_title.getFiles(searchRegExp).length > 0) {
+                if (File(thePath + "/title" + slash_sys + "/" + found_title_filename).exists) {
                     // Put raw title image into new layer
                     myDocument.activeLayer = layer0;
-                    addFileNewLayer(folder_title.getFiles(searchRegExp)[0]);
+                    addFileNewLayer(File(thePath + "/title" + slash_sys + "/" + found_title_filename));
                     myDocument.activeLayer.name = "raw_title";
 
                     // Move raw box image to the layer set
                     myDocument.layers["raw_title"].move(layerSet_title, ElementPlacement.PLACEATEND);
 
-                    // Loop through each common image extension to find image
-                    for (var j = 0; j < check_file_extensions.length; j++) {
-                      if (File(thePath + "/title" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                        var found_title_filename = arr_unique[i] + check_file_extensions[j];
-                      }
-                    }
+                    // // Loop through each common image extension to find image
+                    // for (var j = 0; j < check_file_extensions.length; j++) {
+                    //   if (File(thePath + "/title" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    //     var found_title_filename = arr_unique[i] + check_file_extensions[j];
+                    //   }
+                    // }
 
                     // Get resolution (PPI) of raw file to determine real size
                     app.open(new File(thePath + "/title" + slash_sys + "/" + found_title_filename));
@@ -294,7 +305,7 @@ if (app.documents.length > 0) {
                     replaceContentWithResize("raw_title", layerSet_title, "Calque 5", File(thePath + "/title" + slash_sys + "/" + found_title_filename), "constrain", "", raw_res);
 
                     // If the temp visible layer exists
-                    if (layerSet_tempVisible) {
+                    if (layerSet_titleBlack && layerSet_titleWhite) {
                       // Temporarily move the raw_screenshot layer to the temp visible later to calculate the highlight border pixels
                       layerSet_title.layers[0].move(layerSet_tempVisible, ElementPlacement.PLACEATEND);
 
@@ -440,123 +451,6 @@ if (app.documents.length > 0) {
 
                       // alert("Highlight %:" + highlight_ratio + "    Shadow %:" + shadow_ratio + "    V. Bright %:" + vbright_ratio + "    V. Dark %:" + vdark_ratio + "    Yellow %:" + yellow_ratio);
 
-                      // If the ratio is lower than 25%, move the image back to the title layer set with white border
-                      // Otherwise, send to set with black border
-                      // if (highlight_ratio > 0.70) {
-                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                      // } else {
-                      //     if (vbright_ratio > 0.10) {
-                      //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //     } else {
-                      //         if (vdark_ratio < Math.min(vbright_ratio, 0.10)) {
-                      //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //         } else {
-                      //           if (highlight_ratio < 0.40) {
-                      //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //           } else {
-                      //               if (shadow_ratio > 0.30) {
-                      //                 layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //               } else {
-                      //                 layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //               }
-                      //           }
-                      //         }
-                      //     }
-                      // }
-
-                      // if (highlight_ratio > 0.70) {
-                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                      // } else {
-                      //     if (vbright_ratio > 0.10) {
-                      //       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //     } else {
-                      //         if (highlight_ratio < 0.40) {
-                      //             if (vdark_ratio >= vbright_ratio) {
-                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //             } else {
-                      //                 if (vbright_ratio > 0.05) {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //                 } else {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //                 }
-                      //             }
-                      //         } else {
-                      //           if (shadow_ratio > 0.30) {
-                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //             } else {
-                      //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //             }
-                      //         }
-                      //     }
-                      // }
-
-                      // if (highlight_ratio > 0.70) {
-                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                      // } else {
-                      //     if (shadow_ratio > 0.70) {
-                      //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //     } else {
-                      //         if (vbright_ratio > 0.10) {
-                      //             if (vdark_ratio >= vbright_ratio) {
-                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //             } else {
-                      //                 if (vdark_ratio > 0.10) {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //                 } else {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //                 }
-                      //             }
-                      //         } else {
-                      //             if (highlight_ratio < 0.40) {
-                      //                 if (vdark_ratio >= vbright_ratio) {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //                 } else {
-                      //                     if (vbright_ratio > 0.05) {
-                      //                       layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //                     } else {
-                      //                       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //                     }
-                      //                 }
-                      //             } else {
-                      //               if (shadow_ratio > 0.30) {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //                 } else {
-                      //                   layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //                 }
-                      //             }
-                      //         }
-                      //     }
-                      // }
-
-                      // if (highlight_ratio > 0.65) {
-                      //   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                      // } else {
-                      //   if ((highlight_ratio >= shadow_ratio) && (vdark_ratio < 0.01)) {
-                      //     layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //   } else {
-                      //     if (shadow_ratio > 0.60) {
-                      //       layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //     } else {
-                      //       if (vbright_ratio > 0.50) {
-                      //         layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                      //       } else {
-                      //         if ((vbright_ratio > 0.25) && (vdark_ratio < 0.10)) {
-                      //           layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //         } else {
-                      //           if ((vbright_ratio > 0.25) && (vdark_ratio >= 0.10)) {
-                      //             layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //           } else {
-                      //             if (shadow_ratio > 0.50) {
-                      //               layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                      //             } else {
-                      //               layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                      //             }
-                      //           }
-                      //         }
-                      //       }
-                      //     }
-                      //   }
-                      // }
 
                       if (yellow_ratio > 0.70) {
                         layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
@@ -576,7 +470,11 @@ if (app.documents.length > 0) {
                               }
                           } else {
                             if ((shadow_ratio > 0.70) || (vdark_ratio > 0.20)) {
-                              layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                              if (vbright_ratio / highlight_ratio < 0.80) {
+                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                              } else {
+                                  layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                              }
                             } else {
                               if (shadow_ratio > 0.60) {
                                   if (vbright_ratio / highlight_ratio < 0.75) {
@@ -588,37 +486,41 @@ if (app.documents.length > 0) {
                                 if (vbright_ratio > 0.40) {
                                   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                                 } else {
-                                  if (vbright_ratio > 0.30) {
-                                      if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
-                                        layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                      } else {
-                                        layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                      }
+                                  if (vdark_ratio / shadow_ratio > 0.20) {
+                                    layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                                   } else {
-                                    if (vbright_ratio > 0.25) {
-                                        if (vdark_ratio < 0.10) {
-                                          layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                        } else {
+                                    if (vbright_ratio > 0.30) {
+                                        if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
                                           layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                        } else {
+                                          layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
                                         }
                                     } else {
-                                      if (shadow_ratio > highlight_ratio) {
-                                          if (shadow_ratio > 0.50) {
-                                              if (vbright_ratio > 0.20) {
-                                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                              } else {
-                                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                              }
+                                      if (vbright_ratio > 0.25) {
+                                          if (shadow_ratio <= 0.50) {
+                                            layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
                                           } else {
-                                              if (vbright_ratio / highlight_ratio > 0.60) {
-                                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                              } else {
-                                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                              }
+                                            layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                                           }
-                                       } else {
-                                         layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                       }
+                                      } else {
+                                        if (shadow_ratio > highlight_ratio) {
+                                            if (shadow_ratio > 0.50) {
+                                                if ((vbright_ratio > 0.20) || (highlight_ratio < 0.20) || (vdark_ratio / shadow_ratio > 0.10)) {
+                                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                                } else {
+                                                  layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                                }
+                                            } else {
+                                                if (vbright_ratio / highlight_ratio > 0.60) {
+                                                  layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                                } else {
+                                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                                }
+                                            }
+                                         } else {
+                                           layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                         }
+                                      }
                                     }
                                   }
                                 }
@@ -641,23 +543,32 @@ if (app.documents.length > 0) {
                   }
                 }
 
+                // Loop through each common image extension to find image
+                var found_ss_filename = "null";
+
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/screenshot" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    var found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
+
                 // If the screenshot image for the game exists, process the screenshot image
                 // otherwise, leave it blank
-                if (folder_ss.getFiles(searchRegExp).length > 0) {
+                if (File(thePath + "/screenshot" + slash_sys + "/" + found_ss_filename).exists) {
                     // Put raw screenshot image into new layer
                     myDocument.activeLayer = layer0;
-                    addFileNewLayer(folder_ss.getFiles(searchRegExp)[0]);
+                    addFileNewLayer(File(thePath + "/screenshot" + slash_sys + "/" + found_ss_filename));
                     myDocument.activeLayer.name = "raw_screenshot";
 
                     // Move raw box image to the layer set
                     myDocument.layers["raw_screenshot"].move(layerSet_ss, ElementPlacement.PLACEATEND);
 
-                    // Loop through each common image extension to find image
-                    for (var j = 0; j < check_file_extensions.length; j++) {
-                      if (File(thePath + "/screenshot" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
-                        var found_ss_filename = arr_unique[i] + check_file_extensions[j];
-                      }
-                    }
+                    // // Loop through each common image extension to find image
+                    // for (var j = 0; j < check_file_extensions.length; j++) {
+                    //   if (File(thePath + "/screenshot" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    //     var found_ss_filename = arr_unique[i] + check_file_extensions[j];
+                    //   }
+                    // }
 
                     // Get resolution (PPI) of raw file to determine real size
                     app.open(new File(thePath + "/screenshot" + slash_sys + "/" + found_ss_filename));
@@ -679,13 +590,21 @@ if (app.documents.length > 0) {
                 }
 
 
+                // Loop through each common image extension to find image
+                var found_box_filename = "null";
+
+                for (var j = 0; j < check_file_extensions.length; j++) {
+                  if (File(thePath + "/box" + slash_sys + "/" + arr_unique[i] + check_file_extensions[j]).exists) {
+                    var found_box_filename = arr_unique[i] + check_file_extensions[j];
+                  }
+                }
 
                 // If the box image for the game exists, process the box image
                 // otherwise, leave it blank
-                if ((folder_box.getFiles(searchRegExp).length > 0) && (layer_box_perm)) {
+                if ((File(thePath + "/box" + slash_sys + "/" + found_box_filename).exists) && (layer_box_perm)) {
                     // Put raw box image into new layer
                     myDocument.activeLayer = layer0;
-                    addFileNewLayer(folder_box.getFiles(searchRegExp)[0]);
+                    addFileNewLayer(File(thePath + "/box" + slash_sys + "/" + found_box_filename));
                     myDocument.activeLayer.name = "raw_box";
 
                     // Move raw box image to the layer set
