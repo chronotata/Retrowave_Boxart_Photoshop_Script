@@ -462,64 +462,77 @@ if (app.documents.length > 0) {
                               layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                             }
                         } else {
-                          if (highlight_ratio > 0.65) {
-                              if (highlight_ratio > shadow_ratio) {
-                                layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                              } else {
-                                layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                              }
+                          if (highlight_ratio > 0.90) {
+                            layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                           } else {
-                            if ((shadow_ratio > 0.70) || (vdark_ratio > 0.20)) {
-                              if (vbright_ratio / highlight_ratio < 0.80) {
-                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                              } else {
-                                  layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                              }
+                            if (highlight_ratio > 0.65) {
+                                if ((vbright_ratio / highlight_ratio < 0.75) || (shadow_ratio < 0.40)) {
+                                  layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                } else {
+                                    if (highlight_ratio > shadow_ratio) {
+                                      layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                                    } else {
+                                      layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                    }
+                                }
                             } else {
-                              if (shadow_ratio > 0.60) {
-                                  if (vbright_ratio / highlight_ratio < 0.75) {
-                                    layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                  } else {
-                                    layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                                  }
-                              } else {
-                                if (vbright_ratio > 0.40) {
+                              if ((shadow_ratio > 0.60) || (vdark_ratio > 0.20)) {
+                                if ((vbright_ratio / highlight_ratio > 0.75) && (vdark_ratio / shadow_ratio > 0.30)) {
                                   layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                                 } else {
-                                  if (vdark_ratio / shadow_ratio > 0.20) {
-                                    layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                }
+                              } else {
+                                if (vbright_ratio / highlight_ratio > 0.85) {
+                                  layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                } else {
+                                  if (vbright_ratio > 0.40) {
+                                    layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
                                   } else {
-                                    if (vbright_ratio > 0.30) {
-                                        if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
-                                          layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                        } else {
-                                          layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                        }
+                                    if (vdark_ratio / shadow_ratio > 0.20) {
+                                      layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                                     } else {
-                                      if (vbright_ratio > 0.25) {
-                                          if (shadow_ratio <= 0.50) {
-                                            layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                          } else {
-                                            layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
-                                          }
+                                      if (vbright_ratio / highlight_ratio > 0.70) {
+                                        layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
                                       } else {
-                                        if (shadow_ratio > highlight_ratio) {
-                                            if (shadow_ratio > 0.50) {
-                                                if ((vbright_ratio > 0.20) || (highlight_ratio < 0.20) || (vdark_ratio / shadow_ratio > 0.10)) {
-                                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                                } else {
-                                                  layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                                }
+                                        if (vbright_ratio > 0.30) {
+                                            if ((shadow_ratio > 0.40) | (vdark_ratio / shadow_ratio > 0.20)) {
+                                              layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
                                             } else {
-                                                if (vbright_ratio / highlight_ratio > 0.60) {
-                                                  layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
-                                                } else {
-                                                  layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                                }
+                                              layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
                                             }
-                                         } else {
-                                           layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
-                                         }
+                                        } else {
+                                          if (vbright_ratio > 0.25) {
+                                              if (shadow_ratio <= 0.50) {
+                                                layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                              } else {
+                                                layerSet_tempVisible.layers[0].move(layerSet_title, ElementPlacement.PLACEATEND);
+                                              }
+                                          } else {
+                                            if (shadow_ratio > highlight_ratio) {
+                                                if (shadow_ratio > 0.50) {
+                                                    if ((vbright_ratio > 0.20) || (highlight_ratio < 0.25) || (vdark_ratio / shadow_ratio > 0.10)) {
+                                                      layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                                    } else {
+                                                      layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                                    }
+                                                } else {
+                                                    if (shadow_ratio > 0.40) {
+                                                      layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                                    } else {
+                                                      if (vbright_ratio / highlight_ratio > 0.60) {
+                                                        layerSet_tempVisible.layers[0].move(layerSet_titleBlack, ElementPlacement.PLACEATEND);
+                                                      } else {
+                                                        layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                                      }
+                                                    }
+                                                      }
+                                                 } else {
+                                                   layerSet_tempVisible.layers[0].move(layerSet_titleWhite, ElementPlacement.PLACEATEND);
+                                                 }
+                                              }
+                                           }
+                                        }
                                       }
                                     }
                                   }
@@ -529,9 +542,6 @@ if (app.documents.length > 0) {
                           }
                         }
                       }
-
-
-                    }
 
                     // Duplicate the back title layer to the visible set
                     layer_backtitle.move(layerSet_backtitle, ElementPlacement.PLACEATEND);
