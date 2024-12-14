@@ -24,13 +24,23 @@ The advantages of using a Photoshop script as opposed to XML templates for scrap
 
 ## Available Mixes
 
-Choose between the original mix created by the theme creator:
+### Original mix created by the theme creator
 
 ![Final Fantasy VII](https://github.com/user-attachments/assets/e9d7e41e-f568-412b-9837-77e4a8d6d538)
 
-Or my own "remix" which has different placements and with game boxes for games that have them:
+"RetroWave_game_box_Original_Mix.psd" in the repo.
 
-![Final Fantasy VII](https://github.com/user-attachments/assets/ec969d00-7f30-4b65-a5f5-5b8412c393e7)
+### My "remix" with boxart and different placements
+
+![Final Fantasy VII](https://github.com/user-attachments/assets/6e4150df-be67-4b4c-9a66-dc6bcdd9649e)
+
+There are 4 variants to this mix:
+- RetroWave_game_box_Chrono_Mix_no_outline.psd: No outline is applied on the title image
+- RetroWave_game_box_Chrono_Mix_white_outline.psd: A white outline is applied on the title image
+- RetroWave_game_box_Chrono_Mix_black_outline.psd: A black outline is applied on the title image
+- RetroWave_game_box_Chrono_Mix_auto_outline.psd: The script "guesses" the best outline based on the title image and applies it
+
+I suggest using the auto outline variants, and use the other 3 if the guessed outline doesn't look good and you want to choose which to apply manually
 
 
 ## How to use?
@@ -70,9 +80,52 @@ Create a new folder anywhere on your computer, and create 2 subfolder there, "ti
 
 For my remix, also put the box images in the "box" folder.
 
-Now, download the "retrowave_boxart.jsx" Javascript file and either "RetroWave_game_box_Original_Mix.psd" Photoshop file for the original mix, or "RetroWave_game_box_Chrono_Mix.psd" for my remix, from this repository and put them in the same folder.
+Now, download the "retrowave_boxart.jsx" Javascript file and one of the PSD mixes (such as "RetroWave_game_box_Chrono_Mix_auto_outline.psd"), from this repository and put them in the same folder.
 
 ![input_files](https://github.com/user-attachments/assets/c8680da7-45f0-4afb-afe8-e57d18a6b7a6)
+
+So the file stucture would look like so:
+```
+main_folder
+│
+├─ title
+│   └─ <title images here>
+├─ screenshot
+│   └─ <screenshot images here>
+├─ box
+│   └─ <boxart images here>
+│
+├─ retrowave_boxart.jsx
+│
+└─ RetroWave_game_box_Chrono_Mix_auto_outline.psd
+```
+
+Alternately, if you have arts for several systems in different subfolders, you can set up the structure like this and the script will iterate through them:
+```
+main_folder
+│
+├─ title
+│   ├─ system_1
+│   │   └─ <title images for system_1 here>
+│   └─ system_2
+│       └─ <title images for system_2 here>
+│
+├─ screenshot
+│   ├─ system_1
+│   │   └─ <screenshot images for system_1 here>
+│   └─ system_2
+│       └─ <screenshot images for system_2 here>
+│
+├─ box
+│   ├─ system_1
+│   │   └─ <boxart images for system_1 here>
+│   └─ system_2
+│       └─ <boxart images for system_2 here>
+│
+├─ retrowave_boxart.jsx
+│
+└─ RetroWave_game_box_Chrono_Mix_auto_outline.psd
+```
 
 
 ### 3) Open Photoshop file and run the script
